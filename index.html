@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Suivi prospection</title>
+<style>
+:root {
+  --color-fg: #1c1b1a; --color-fg-muted: #6b6762; --color-bg: #f6f4f1; --color-panel: #ffffff;
+  --color-border-line: #e4e0da; --color-bad: #c2410c;
+  --cds-gap-sm: 10px; --cds-gap-md: 14px; --cds-gap-lg: 20px;
+  --cds-pad-xs: 4px; --cds-pad-sm: 8px; --cds-pad-md: 12px; --cds-pad-lg: 16px; --cds-radius: 10px;
+  --cds-font-size-caption: 12px; --cds-font-size-body: 14px; --cds-font-size-heading: 16px; --cds-font-weight-medium: 600;
+  --cds-chart-grid: #ebe7e1; --cds-surface-popover: #ffffff; --cds-border: #d9d4cc; --cds-text-secondary: #6b6762;
+  --cds-shadow-popover: 0 4px 16px rgba(0,0,0,.12); --cds-dur-slow: .3s;
+  --font-anthropic-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-anthropic-serif: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --c0: #2b7bd9; --c1: #e8703a; --c2: #2f9e6e; --c3: #8a5bd6; --c4: #d4a017; --c5: #d6498b; --c6: #17a2b8; --c7: #7a7f87;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --color-fg: #efece7; --color-fg-muted: #a09a92; --color-bg: #161513; --color-panel: #1f1e1c;
+  --color-border-line: #34312d; --color-bad: #f08a5d; --cds-chart-grid: #2d2b28; --cds-surface-popover: #272522;
+  --cds-border: #3d3a36; --cds-text-secondary: #a09a92; --cds-shadow-popover: 0 4px 16px rgba(0,0,0,.5);
+  --c0: #5b9cf0; --c1: #f08a5d; --c2: #4cc08e; --c3: #a98aeb; --c4: #e6bc3d; --c5: #ec6aa6; --c6: #3dbfd4; --c7: #9aa0a8;
+  color-scheme: dark; } }
+html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); }
+body { font-family: var(--font-anthropic-sans); font-size: 14px; }
+#dash-root { padding: clamp(12px, 2vw, 24px); }
+
+
+.sp { max-width: 1280px; margin-inline: auto; display: flex; flex-direction: column; gap: var(--cds-gap-md); font-family: var(--font-anthropic-sans); color: var(--color-fg); }
+.sp * { box-sizing: border-box; }
+.sp-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--cds-gap-sm) var(--cds-gap-md); }
+.sp-head h1 { margin: 0; font-family: var(--font-anthropic-serif); font-weight: 400; font-size: 1.75rem; line-height: 1.1; }
+.sp-sub { margin: 2px 0 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.sp-ctls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-sm) var(--cds-gap-md); }
+.range { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.range input { font: inherit; font-size: var(--cds-font-size-caption); padding: 4px 8px; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-panel); color: var(--color-fg); }
+.range.active input { border-color: var(--color-fg); }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); overflow: hidden; }
+.seg button { font: inherit; font-size: var(--cds-font-size-caption); padding: 6px 14px; border: 0; background: transparent; color: var(--color-fg-muted); cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--color-border-line); }
+.seg button[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); }
+.row1 { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--cds-gap-sm); align-items: stretch; }
+@media (max-width: 960px) { .row1 { grid-template-columns: minmax(0, 1fr); } }
+.card { position: relative; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.card-h { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 12px; }
+.card h2 { margin: 0; font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); }
+.kpis { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px 28px; }
+.kpi { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.kpi .lbl { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.kpi .big { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: 2.1rem; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.kpi.small .big { font-size: 1.4rem; }
+.kpi.boxed { border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 6px 10px; margin-left: auto; }
+.kpi .sub b { color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+.kpi .sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-variant-numeric: tabular-nums; }
+.legend { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.chart { position: relative; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart text { fill: var(--color-fg-muted); font-size: 10.5px; font-family: var(--font-anthropic-sans); }
+.sk { overflow-x: auto; position: relative; }
+.sk svg { display: block; min-width: 720px; width: 100%; height: auto; }
+.sk text { fill: var(--color-fg); font-size: 11px; font-family: var(--font-anthropic-sans); }
+.sk text.t { fill: var(--color-fg-muted); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
+.tip { position: absolute; z-index: 5; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg); white-space: nowrap; }
+.tip .d { color: var(--cds-text-secondary); }
+.tip i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; }
+.gbox { border-top: 1px solid var(--color-border-line); padding-top: 8px; display: flex; flex-direction: column; gap: 5px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-variant-numeric: tabular-nums; }
+.gbox b { color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+.gline { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2px 10px; }
+.meter { width: 100%; height: 6px; border-radius: 3px; background: var(--color-border-line); overflow: hidden; }
+.meter > div { height: 100%; border-radius: 3px; }
+.empty-line { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); display: flex; align-items: center; gap: 8px; min-height: 40px; }
+.empty-line::before { content: ''; width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); }
+[data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+
+</style>
+</head>
+<body>
+<div id="dash-root">
+
+
+<div class="sp">
+  <header class="sp-head" id="entete">
+    <div>
+      <h1>Suivi prospection</h1>
+      <p class="sp-sub">Instantané du <span data-source="kpis" data-field="maj" data-fmt="date">—</span> · période : du <span id="w-debut">—</span> au <span id="w-fin">—</span></p>
+    </div>
+    <div class="sp-ctls">
+      <div class="seg" id="seg-w" role="group" aria-label="Période">
+        <button type="button" data-w="7j" aria-pressed="false">7 jours</button>
+        <button type="button" data-w="30j" aria-pressed="false">30 jours</button>
+        <button type="button" data-w="tout" aria-pressed="true">Depuis le début</button>
+      </div>
+      <div class="range" id="range">
+        <label>Du <input type="date" id="d-from" min="2026-09-28" max="2099-12-31"></label>
+        <label>au <input type="date" id="d-to" min="2026-09-28" max="2099-12-31"></label>
+      </div>
+    </div>
+  </header>
+
+  <section class="row1">
+    <div class="card" id="envois-card">
+      <div class="card-h"><h2>Emails</h2><div class="legend" id="envois-legend"></div></div>
+      <div class="kpis">
+        <div class="kpi"><div class="lbl">Envoyés</div><div class="big" data-source="fenetres" data-where="fenetre=tout" data-field="emails" data-fmt="int">—</div><div class="sub"><span data-source="fenetres" data-where="fenetre=tout" data-field="premiers" data-fmt="int">—</span> nouveaux · <span data-source="fenetres" data-where="fenetre=tout" data-field="relances" data-fmt="int">—</span> relances</div></div>
+        <div class="kpi"><div class="lbl">Réponses</div><div class="big" data-source="fenetres" data-where="fenetre=tout" data-field="reponses" data-fmt="int">—</div><div class="sub">de prospects</div></div>
+        <div class="kpi small boxed"><div class="lbl">Rebonds</div><div class="big" data-source="fenetres" data-where="fenetre=tout" data-field="rebonds" data-fmt="int">—</div><div class="sub"><b data-source="fenetres" data-where="fenetre=tout" data-field="taux_nouveaux" data-fmt="pct">—</b> des nouveaux</div><div class="sub"><b data-source="fenetres" data-where="fenetre=tout" data-field="taux_total" data-fmt="pct">—</b> de tous les emails</div></div>
+      </div>
+      <div class="chart" id="envois-chart" data-source="envois"></div>
+    </div>
+
+    <div class="card" id="crawl-card">
+      <div class="card-h"><h2>Crawl</h2><div class="legend" id="crawl-legend"></div></div>
+      <div class="kpis">
+        <div class="kpi"><div class="lbl">Nouveaux sites 2/5 ou -</div><div class="big" data-source="fenetres" data-where="fenetre=tout" data-field="sites_2_5" data-fmt="int">—</div><div class="sub">avec email, trouvés par le crawl</div></div>
+      </div>
+      <div class="chart" id="crawl-chart" data-source="crawl"></div>
+      <div class="gbox">
+        <div class="gline"><span>Google : requêtes gratuites du mois</span><span><b data-source="kpis" data-field="requetes_mois" data-fmt="int">—</b> / <span data-source="kpis" data-field="quota_gratuit" data-fmt="int">—</span></span></div>
+        <div class="meter" id="m-free"><div></div></div>
+        <div class="gline"><span>Crédit d'essai : <b data-source="kpis" data-field="credit_restant_eur" data-fmt="eur">—</b> sur <span data-source="kpis" data-field="credit_total_eur" data-fmt="eur">—</span></span><span>fin le <span data-source="kpis" data-field="fin_essai" data-fmt="date">—</span> (<span data-source="kpis" data-field="jours_restants" data-fmt="int">—</span> j)</span></div>
+      </div>
+    </div>
+
+    <div class="card" id="claude-card">
+      <div class="card-h"><h2>Claude</h2><div class="legend">dollars</div></div>
+      <div class="kpis">
+        <div class="kpi"><div class="lbl">Dépense</div><div class="big" data-source="fenetres" data-where="fenetre=tout" data-field="cout_usd" data-fmt="usd">—</div><div class="sub">estimation d'après la console</div></div>
+      </div>
+      <div class="chart" id="couts-chart" data-source="couts"></div>
+    </div>
+  </section>
+
+  <section class="card" id="parcours">
+    <div class="card-h"><h2>Parcours des prospects</h2><div class="legend">total depuis le début, quelle que soit la période</div></div>
+    <div class="sk" id="sankey" data-source="flux"></div>
+  </section>
+</div>
+
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+// Données : un seul fichier data.json (uniquement des totaux), mis à jour automatiquement par l'agent.
+const dash = (() => {
+  let data = null, status = 'loading'; const subs = [];
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  return {
+    data: (id) => ({ status: data ? 'ok' : status, data: data ? data[id] : [] }),
+    onData: (fn) => { subs.push(fn); fn(); },
+    get colors() { return [0, 1, 2, 3, 4, 5, 6, 7].map((i) => css('--c' + i)); },
+    generatedAt: () => data && data.generated_at,
+    load() {
+      fetch('data.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => r.json())
+        .then((d) => { data = d; status = 'ok'; subs.forEach((f) => f()); })
+        .catch(() => { status = 'error'; subs.forEach((f) => f()); });
+      let timer; window.addEventListener('resize', () => { clearTimeout(timer); timer = setTimeout(() => subs.forEach((f) => f()), 150); });
+    },
+  };
+})();
+</script>
+<script>
+(() => {
+  const nf = new Intl.NumberFormat('fr-FR');
+  const F = {
+    int: (v) => nf.format(v),
+    eur: (v) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v),
+    usd: (v) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'USD' }).format(v),
+    pct: (v) => new Intl.NumberFormat('fr-FR', { style: 'percent', maximumFractionDigits: 1 }).format(v),
+    date: (v) => new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(v)),
+  };
+  const dShort = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+  const $ = (s) => document.querySelector(s);
+  const TITLES = ['Sites', 'Email', 'Cible', 'Envoi', 'Relances', 'Réponse'];
+  let win = 'tout';
+  let custom = null; // période choisie à la main : {from, to}
+  const marks = [...document.querySelectorAll('[data-source="fenetres"][data-field]')];
+  const sum = (rows, key) => rows.reduce((t, r) => t + (r[key] || 0), 0);
+  const plus6 = (d) => new Date(new Date(d).getTime() + 6 * 864e5).toISOString().slice(0, 10);
+
+  const rowsOf = (id) => { const d = dash.data(id); return d.status === 'ok' ? d.data : null; };
+  const failed = (id) => ['error', 'connect', 'declined', 'missing'].includes(dash.data(id).status);
+  const line = (el, text, bad) => { el.replaceChildren(); const p = document.createElement('div'); p.className = bad ? 'empty-line' : ''; p.textContent = text; el.append(p); };
+  const swatch = (color, text) => { const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = color; s.append(i, text); return s; };
+
+  function tooltip(host) {
+    const tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true; host.append(tip);
+    return {
+      show(ev, lines) {
+        tip.replaceChildren();
+        lines.forEach((l) => { const d = document.createElement('div'); if (l.head) d.className = 'd'; if (l.color) { const sw = document.createElement('i'); sw.style.background = l.color; d.append(sw); } d.append(l.text); tip.append(d); });
+        tip.hidden = false;
+        const box = host.getBoundingClientRect();
+        const left = Math.min(Math.max(ev.clientX - box.left + 12 + host.scrollLeft, 0), Math.max(0, host.scrollWidth - tip.offsetWidth));
+        tip.style.left = left + 'px'; tip.style.top = Math.max(0, ev.clientY - box.top - tip.offsetHeight - 10) + 'px';
+      },
+      hide() { tip.hidden = true; },
+    };
+  }
+
+  function barChart(el, rows, series, h, label) {
+    el.replaceChildren();
+    if (!rows.length) { line(el, 'Pas encore de données sur cette période.', true); return; }
+    const w = Math.max(el.clientWidth, 220), m = { t: 8, r: 6, b: 22, l: 30 };
+    const svg = d3.select(el).append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('width', '100%');
+    const x = d3.scaleBand().domain(rows.map((_, i) => i)).range([m.l, w - m.r]).padding(0.25);
+    const top = d3.max(rows, (r) => d3.sum(series, (s) => r[s.key])) || 1;
+    const y = d3.scaleLinear([0, top], [h - m.b, m.t]).nice(3);
+    y.ticks(3).forEach((t) => {
+      svg.append('line').attr('x1', m.l).attr('x2', w - m.r).attr('y1', y(t)).attr('y2', y(t)).attr('stroke', 'var(--cds-chart-grid)').attr('stroke-width', 1);
+      svg.append('text').attr('x', m.l - 5).attr('y', y(t) + 3).attr('text-anchor', 'end').text(series[0].fmt === F.usd ? '$' + nf.format(t) : nf.format(t));
+    });
+    rows.forEach((r, i) => {
+      let acc = 0;
+      series.forEach((s) => {
+        const v = r[s.key]; if (!v) return;
+        const y0 = y(acc), y1 = y(acc + v);
+        svg.append('rect').attr('x', x(i)).attr('y', y1).attr('width', x.bandwidth()).attr('height', Math.max(1, y0 - y1)).attr('rx', 2).attr('fill', s.color);
+        acc += v;
+      });
+    });
+    const step = Math.ceil(rows.length / Math.max(1, Math.floor((w - m.l - m.r) / 58)));
+    rows.forEach((r, i) => { if (i % step === 0) svg.append('text').attr('x', x(i) + x.bandwidth() / 2).attr('y', h - 6).attr('text-anchor', 'middle').text(label(r.debut)); });
+    const tip = tooltip(el);
+    rows.forEach((r, i) => {
+      svg.append('rect').attr('x', x(i) - x.step() * 0.12).attr('y', m.t).attr('width', x.step()).attr('height', h - m.b - m.t).attr('fill', 'transparent')
+        .on('pointermove', (ev) => tip.show(ev, [{ head: true, text: label(r.debut) }, ...series.map((s) => ({ color: s.color, text: `${s.label} : ${s.fmt(r[s.key])}` }))]))
+        .on('pointerleave', () => tip.hide());
+    });
+  }
+
+  function sankey(el, flows) {
+    el.replaceChildren();
+    if (!flows.length) { line(el, 'Pas encore de données.', true); return; }
+    const W = Math.max(el.clientWidth, 720), H = 290, top = 22, nodeW = 12, labelW = 150, padN = 15, minH = 4;
+    const nodes = new Map();
+    const get = (name, col) => { if (!nodes.has(name)) nodes.set(name, { name, col, in: 0, out: 0, links: [], inlinks: [] }); return nodes.get(name); };
+    flows.forEach((f) => {
+      const a = get(f.source, f.col_source), b = get(f.cible, f.col_cible);
+      a.out += f.valeur; b.in += f.valeur;
+      const l = { a, b, v: f.valeur }; a.links.push(l); b.inlinks.push(l);
+    });
+    const list = [...nodes.values()];
+    list.forEach((n) => { n.value = Math.max(n.in, n.out); });
+    const cols = d3.max(list, (n) => n.col) + 1;
+    const byCol = d3.range(cols).map((c) => list.filter((n) => n.col === c));
+    const avail = H - top - 6;
+    const k = d3.min(byCol, (ns) => (avail - padN * (ns.length - 1)) / (d3.sum(ns, (n) => n.value) || 1));
+    const colGap = (W - nodeW - labelW - 6) / (cols - 1);
+    byCol.forEach((ns, c) => {
+      ns.forEach((n) => { n.h = Math.max(minH, n.value * k); n.x = 6 + c * colGap; });
+      const total = d3.sum(ns, (n) => n.h) + padN * (ns.length - 1);
+      let y = top + (avail - total) / 2;
+      ns.forEach((n) => { n.y = y; y += n.h + padN; });
+    });
+    list.forEach((n) => {
+      let yo = n.y; n.links.forEach((l) => { l.h0 = n.out ? (l.v / n.out) * n.h : 0; l.y0 = yo; yo += l.h0; });
+      let yi = n.y; n.inlinks.sort((p, q) => p.a.y - q.a.y).forEach((l) => { l.h1 = n.in ? (l.v / n.in) * n.h : 0; l.y1 = yi; yi += l.h1; });
+    });
+    const color = (n) => dash.colors[list.indexOf(n) % 8];
+    const svg = d3.select(el).append('svg').attr('viewBox', `0 0 ${W} ${H}`);
+    const tip = tooltip(el);
+    d3.range(cols).forEach((c) => svg.append('text').attr('class', 't').attr('x', 6 + c * colGap).attr('y', 11).text(TITLES[c] || ''));
+    flows.forEach((f) => {
+      const a = nodes.get(f.source), l = a.links.find((x) => x.b.name === f.cible);
+      const x0 = a.x + nodeW, x1 = l.b.x, xm = (x0 + x1) / 2, t0 = Math.max(1.5, l.h0), t1 = Math.max(1.5, l.h1);
+      svg.append('path').attr('d', `M${x0},${l.y0} C${xm},${l.y0} ${xm},${l.y1} ${x1},${l.y1} L${x1},${l.y1 + t1} C${xm},${l.y1 + t1} ${xm},${l.y0 + t0} ${x0},${l.y0 + t0} Z`)
+        .attr('fill', color(a)).attr('fill-opacity', 0.32)
+        .on('pointermove', (ev) => tip.show(ev, [{ head: true, text: `${f.source} → ${f.cible}` }, { text: F.int(f.valeur) + ' prospects' }]))
+        .on('pointerleave', () => tip.hide());
+    });
+    list.forEach((n) => {
+      svg.append('rect').attr('x', n.x).attr('y', n.y).attr('width', nodeW).attr('height', n.h).attr('rx', 2).attr('fill', color(n))
+        .on('pointermove', (ev) => tip.show(ev, [{ head: true, text: n.name }, { text: F.int(n.value) + ' prospects' }]))
+        .on('pointerleave', () => tip.hide());
+      // Une seule ligne par bloc, sans coupure : le nom complet puis l'effectif.
+      svg.append('text').attr('x', n.x + nodeW + 5).attr('y', n.y + n.h / 2 + 3.5).text(`${n.name} · ${F.int(n.value)}`);
+    });
+  }
+
+  function render() {
+    const wins = rowsOf('fenetres');
+    const k = (rowsOf('kpis') || [])[0];
+    const preset = !custom;
+    const w = wins && wins.find((r) => r.fenetre === win);
+    const from = custom ? custom.from : (w ? w.debut : '');
+    const to = custom ? custom.to : (k ? k.maj : '');
+
+    // Chiffres clés : ligne précalculée pour les périodes prédéfinies, somme des jours pour une période choisie.
+    let vals = preset ? w : null;
+    if (!preset) {
+      const e = rowsOf('envois'), cr0 = rowsOf('crawl'), co0 = rowsOf('couts');
+      if (e && cr0 && co0) {
+        const inr = (r) => r.periode === 'jour' && r.debut >= from && r.debut <= to;
+        const er = e.filter(inr);
+        const premiers = sum(er, 'nouveaux'), relances = sum(er, 'relances'), rebonds = sum(er, 'rebonds');
+        vals = { emails: premiers + relances, premiers, relances, reponses: sum(er, 'reponses'), rebonds,
+          taux_nouveaux: premiers ? rebonds / premiers : 0, taux_total: premiers + relances ? rebonds / (premiers + relances) : 0,
+          sites_2_5: sum(cr0.filter(inr), 'deux_cinq'), cout_usd: Math.round(sum(co0.filter(inr), 'usd') * 100) / 100 };
+      }
+    }
+    marks.forEach((el) => {
+      if (preset) { el.setAttribute('data-source', 'fenetres'); el.setAttribute('data-where', 'fenetre=' + win); }
+      else { el.removeAttribute('data-source'); el.removeAttribute('data-where'); }
+      el.textContent = vals ? F[el.dataset.fmt || 'int'](vals[el.dataset.field]) : (failed('fenetres') ? 'Échec' : '—');
+    });
+    document.querySelectorAll('[data-source="kpis"][data-field]').forEach((el) => {
+      el.textContent = k && k[el.dataset.field] !== undefined ? F[el.dataset.fmt || 'int'](k[el.dataset.field]) : (failed('kpis') ? 'Échec' : '—');
+    });
+    if (k) { $('#m-free > div').style.width = Math.min(100, (k.requetes_mois / k.quota_gratuit) * 100) + '%'; $('#m-free > div').style.background = dash.colors[0]; }
+
+    // Sélecteurs : boutons prédéfinis, dates (qui affichent toujours la période en cours)
+    document.querySelectorAll('#seg-w button').forEach((x) => x.setAttribute('aria-pressed', String(preset && x.dataset.w === win)));
+    $('#range').classList.toggle('active', !preset);
+    const dFrom = $('#d-from'), dTo = $('#d-to');
+    if (from && document.activeElement !== dFrom) dFrom.value = from;
+    if (to && document.activeElement !== dTo) dTo.value = to;
+    if (k) { dFrom.max = k.maj; dTo.max = k.maj; }
+    if (wins) { const first = (wins.find((r) => r.fenetre === 'tout') || {}).debut; if (first) { dFrom.min = first; dTo.min = first; } }
+    $('#w-debut').textContent = from ? F.date(from) : '—';
+    $('#w-fin').textContent = to ? F.date(to) : '—';
+
+    // Graphiques : les jours de la période (des semaines au-delà de 45 jours)
+    const span = from && to ? (new Date(to) - new Date(from)) / 864e5 : 0;
+    const periode = span > 45 ? 'semaine' : 'jour';
+    const label = (debut) => periode === 'semaine' ? 'Sem. ' + dShort.format(new Date(debut)) : dShort.format(new Date(debut));
+    const pick = (id) => {
+      const r = rowsOf(id);
+      return r && r.filter((x) => x.periode === periode && (periode === 'jour' ? x.debut >= from && x.debut <= to : x.debut <= to && plus6(x.debut) >= from))
+        .sort((a, b) => a.debut.localeCompare(b.debut));
+    };
+    const c = dash.colors;
+
+    const e = pick('envois');
+    if (e) {
+      const s = [{ key: 'nouveaux', label: 'Nouveaux', color: c[0], fmt: F.int }, { key: 'relances', label: 'Relances', color: c[1], fmt: F.int }];
+      $('#envois-legend').replaceChildren(...s.map((x) => swatch(x.color, x.label)));
+      barChart($('#envois-chart'), e, s, 150, label);
+    } else if (failed('envois')) line($('#envois-chart'), 'Échec du chargement', true);
+
+    const cr = pick('crawl');
+    if (cr) {
+      const s = [{ key: 'deux_cinq', label: '2/5 ou -', color: c[2], fmt: F.int }, { key: 'trois_cinq', label: '3/5', color: c[0], fmt: F.int }];
+      $('#crawl-legend').replaceChildren(...s.map((x) => swatch(x.color, x.label)));
+      barChart($('#crawl-chart'), cr, s, 110, label);
+    } else if (failed('crawl')) line($('#crawl-chart'), 'Échec du chargement', true);
+
+    const co = pick('couts');
+    if (co) barChart($('#couts-chart'), co, [{ key: 'usd', label: 'Claude', color: c[3], fmt: F.usd }], 150, label);
+    else if (failed('couts')) line($('#couts-chart'), 'Échec du chargement', true);
+
+    const fl = rowsOf('flux');
+    if (fl) sankey($('#sankey'), fl); else if (failed('flux')) line($('#sankey'), 'Échec du chargement', true);
+  }
+
+  document.querySelectorAll('#seg-w button').forEach((b) => b.addEventListener('click', () => { custom = null; win = b.dataset.w; render(); }));
+  const onDate = () => {
+    const f = $('#d-from'), t = $('#d-to');
+    if (!f.value || !t.value || !f.validity.valid || !t.validity.valid || f.value > t.value) return;
+    custom = { from: f.value, to: t.value };
+    render();
+  };
+  $('#d-from').addEventListener('change', onDate);
+  $('#d-to').addEventListener('change', onDate);
+  dash.onData(render);
+})();
+</script>
+<script>dash.load();</script>
+</body>
+</html>
