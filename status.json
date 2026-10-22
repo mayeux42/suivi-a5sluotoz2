@@ -1,0 +1,29 @@
+{
+ "generated_at": "2026-10-22T21:55:15+00:00",
+ "jour": "2026-10-22",
+ "agents": [
+  {
+   "id": "prospection",
+   "nom": "Prospecteur",
+   "role": "Agent de prospection",
+   "mission": "Trouve des plombiers au site daté et leur propose une maquette.",
+   "etat": "ok",
+   "alertes": [],
+   "derniere_activite": "2026-10-22 15:15",
+   "aujourdhui": {
+    "emails": 20,
+    "nouveaux": 5,
+    "relances": 15,
+    "reponses": 1,
+    "rebonds": 1,
+    "sites_2_5": 14,
+    "requetes": 160
+   },
+   "total": {
+    "contactes": 96,
+    "emails": 125,
+    "reponses": 1
+   }
+  }
+ ]
+}

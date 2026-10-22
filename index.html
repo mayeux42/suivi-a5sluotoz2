@@ -77,6 +77,7 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
 .empty-line::before { content: ''; width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); }
 [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
 
+.village-link { font-family: var(--font-anthropic-sans); font-size: 12px; font-weight: 600; vertical-align: middle; margin-left: 10px; padding: 4px 10px; border-radius: 999px; background: var(--color-fg); color: var(--color-bg); text-decoration: none; }
 </style>
 </head>
 <body>
@@ -86,7 +87,7 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
 <div class="sp">
   <header class="sp-head" id="entete">
     <div>
-      <h1>Suivi prospection</h1>
+      <h1>Suivi prospection <a class="village-link" href="village.html">Voir le village</a></h1>
       <p class="sp-sub">Instantané du <span data-source="kpis" data-field="maj" data-fmt="date">—</span> · période : du <span id="w-debut">—</span> au <span id="w-fin">—</span></p>
     </div>
     <div class="sp-ctls">

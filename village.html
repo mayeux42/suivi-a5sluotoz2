@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Le village MDW</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+/* Village rétro : une scène en pixel art (canvas basse résolution agrandi) et une fiche par agent. */
+:root {
+  --night: #141626; --panel: #1f2237; --panel-2: #2a2e4a; --ink: #f4ecd8; --muted: #9a98b5;
+  --gold: #f5c542; --grass: #5aa64a; --red: #e4574a; --blue: #4f8de8; --green: #59c97a;
+  --pixel: "Press Start 2P", ui-monospace, monospace; --mono: "VT323", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--night); color: var(--ink); }
+body { font-family: var(--mono); font-size: 21px; line-height: 1.15; padding-block: 18px 32px; padding-inline: 16px; }
+.wrap { max-width: 1152px; margin-inline: auto; display: flex; flex-direction: column; gap: 16px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 20px; }
+h1 { margin: 0; font-family: var(--pixel); font-size: clamp(16px, 3vw, 24px); letter-spacing: 1px; color: var(--gold); text-shadow: 3px 3px 0 #7a4a12; }
+.sub { margin: 6px 0 0; color: var(--muted); }
+.links a { font-family: var(--pixel); font-size: 10px; color: var(--ink); text-decoration: none; padding: 8px 10px; background: var(--panel-2); box-shadow: 0 0 0 3px #0c0d18, inset -3px -3px 0 #1a1c30; display: inline-block; }
+.links a:hover, .links a:focus-visible { background: #3a3f66; outline: none; }
+.stage { position: relative; box-shadow: 0 0 0 4px #0c0d18, 0 0 0 8px #3a3f66, 0 8px 0 8px #0c0d18; background: #000; }
+canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; image-rendering: crisp-edges; cursor: pointer; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 16px; }
+.card { background: var(--panel); padding: 16px; box-shadow: 0 0 0 4px #0c0d18, inset -4px -4px 0 #171a2c, inset 4px 4px 0 #2c3052; display: flex; flex-direction: column; gap: 10px; min-width: 0; transition: transform .2s; }
+.card.flash { transform: translateY(-4px); box-shadow: 0 0 0 4px var(--gold), inset -4px -4px 0 #171a2c, inset 4px 4px 0 #2c3052; }
+.card h2 { margin: 0; font-family: var(--pixel); font-size: 13px; line-height: 1.5; }
+.card .role { color: var(--muted); }
+.badge { align-self: flex-start; font-family: var(--pixel); font-size: 9px; padding: 6px 8px; color: #0c0d18; }
+.badge.ok { background: var(--green); } .badge.rest { background: var(--blue); } .badge.alert { background: var(--red); color: var(--ink); }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.stat { background: var(--panel-2); padding: 8px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.stat b { font-family: var(--pixel); font-size: 15px; color: var(--gold); font-weight: 400; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: 18px; }
+.alerts { margin: 0; padding: 0; list-style: none; color: var(--red); }
+.foot { color: var(--muted); font-size: 18px; }
+.card.empty { justify-content: center; align-items: center; text-align: center; color: var(--muted); min-height: 180px; border: 3px dashed #3a3f66; box-shadow: none; background: transparent; }
+.card.empty h2 { color: var(--muted); }
+@media (max-width: 520px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>LE VILLAGE MDW</h1>
+      <p class="sub" id="sub">Chargement du village…</p>
+    </div>
+    <nav class="links"><a href="./">Tableau de bord</a></nav>
+  </header>
+  <div class="stage"><canvas id="scene" width="384" height="216" aria-label="Le village des agents : chaque maison est un agent, son habitant montre ce qu'il fait aujourd'hui."></canvas></div>
+  <section class="cards" id="cards" aria-label="Les agents du village"></section>
+</div>
+
+<script>
+(() => {
+  const W = 384, H = 216, GROUND = 150;
+  const cv = document.getElementById('scene');
+  const ctx = cv.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  const params = new URLSearchParams(location.search);
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---- Temps : l'heure du visiteur règle le ciel (?heure=22 pour tester la nuit) ----
+  const hourNow = () => { const h = params.get('heure'); if (h !== null && h !== '') return +h; const d = new Date(); return d.getHours() + d.getMinutes() / 60; };
+  const phaseOf = (h) => (h < 6 || h >= 21 ? 'nuit' : h < 8 ? 'aube' : h < 18.5 ? 'jour' : 'soir');
+  const PAL = {
+    jour: { sky: ['#5fb4ea', '#bfe7fb'], far: '#89bf86', near: '#6fae63', grass: '#5aa64a', grassTop: '#7cc45e', dark: '#43873a', overlay: 0 },
+    aube: { sky: ['#6d6fb8', '#f7c79a'], far: '#8a9f86', near: '#6f9a63', grass: '#579a49', grassTop: '#79b75a', dark: '#40803a', overlay: .12 },
+    soir: { sky: ['#43397a', '#f39a6a'], far: '#5f6f7a', near: '#4f7a55', grass: '#4d8f46', grassTop: '#6aa755', dark: '#3a7535', overlay: .2 },
+    nuit: { sky: ['#0b0e27', '#28305e'], far: '#26304a', near: '#1f2b3d', grass: '#2f5a36', grassTop: '#3c6e40', dark: '#24452a', overlay: .42 },
+  };
+
+  // ---- Utilitaires de dessin pixel ----
+  const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
+  const mix = (a, b, t) => { const p = (s) => [1, 3, 5].map((i) => parseInt(s.slice(i, i + 2), 16)); const A = p(a), B = p(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join(''); };
+  let seed = 7; const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const STARS = Array.from({ length: 70 }, () => ({ x: rand() * W, y: rand() * 95, p: rand() * 6.28 }));
+  const TUFTS = Array.from({ length: 90 }, () => ({ x: rand() * W, y: GROUND + 4 + rand() * (H - GROUND - 6) }));
+  const FLOWERS = Array.from({ length: 26 }, () => ({ x: rand() * W, y: GROUND + 24 + rand() * (H - GROUND - 28), c: ['#f5c542', '#f08aa8', '#ffffff', '#b98cf0'][Math.floor(rand() * 4)] }));
+  const CLOUDS = [{ x: 30, y: 22, s: 1 }, { x: 180, y: 38, s: .8 }, { x: 300, y: 16, s: 1.2 }];
+
+  // Sprites : une lettre = un pixel ('.' transparent)
+  const SPR = (rows) => rows.map((r) => r.split(''));
+  const HERO = {
+    pal: { h: '#5a3825', s: '#f2c39b', k: '#222034', c: '#3b7dd8', d: '#2c5fae', p: '#3a3f58', w: '#ffffff', y: '#f5c542' },
+    top: SPR(['...hhhh..', '..hhhhhh.', '..hhssss.', '..hsssks.', '...ssss..', '..ccycc..', '.cccdccc.', '.scccccs.', '..ccccc..']),
+    legs: [SPR(['..pp.pp..', '..pp.pp..', '..kk.kk..']), SPR(['.pp...pp.', '.pp...pp.', '.kk...kk.']), SPR(['...ppp...', '...ppp...', '...kkk...'])],
+  };
+  const drawSprite = (rows, pal, x, y, flip) => rows.forEach((row, j) => row.forEach((ch, i) => { if (ch !== '.') R(flip ? x + (row.length - 1 - i) : x + i, y + j, 1, 1, pal[ch]); }));
+  const letter = (x, y) => { R(x, y, 6, 4, '#ffffff'); R(x, y, 6, 1, '#c9c2b0'); R(x + 1, y + 1, 1, 1, '#c9c2b0'); R(x + 4, y + 1, 1, 1, '#c9c2b0'); R(x + 2, y + 2, 2, 1, '#c9c2b0'); };
+  const crate = (x, y) => { R(x, y, 7, 6, '#9a6a3a'); R(x, y, 7, 1, '#c08850'); R(x, y + 5, 7, 1, '#6e4a26'); R(x + 3, y + 1, 1, 4, '#6e4a26'); };
+  const textW = (s) => { ctx.font = '8px "Press Start 2P"'; return Math.ceil(ctx.measureText(s).width); };
+  // Panneau en bois centré sur cx, aussi large que son texte.
+  const board = (label, cx, top, color, light) => { const w = textW(label) + 8; R(cx - w / 2, top, w, 12, color); R(cx - w / 2, top, w, 1, light); R(cx - w / 2, top + 11, w, 1, '#5a341c'); text(label, cx, top + 2, '#f4ecd8', 'center'); };
+  const disc = (cx, cy, r, c) => { for (let yy = -r; yy <= r; yy++) { const w = Math.round(Math.sqrt(r * r - yy * yy)); R(cx - w, cy + yy, w * 2, 1, c); } };
+  const text = (s, x, y, c, align) => { ctx.font = '8px "Press Start 2P"'; ctx.textBaseline = 'top'; ctx.textAlign = align || 'left'; ctx.fillStyle = '#0c0d18'; ctx.fillText(s, x + 1, y + 1); ctx.fillStyle = c; ctx.fillText(s, x, y); };
+
+  // ---- Décor ----
+  function sky(pal, h, t) {
+    const bands = 12;
+    for (let i = 0; i < bands; i++) R(0, i * (GROUND / bands), W, GROUND / bands + 1, mix(pal.sky[0], pal.sky[1], i / (bands - 1)));
+    const ph = phaseOf(h);
+    if (ph === 'nuit' || ph === 'soir') STARS.forEach((s) => { const a = .5 + .5 * Math.sin(t / 700 + s.p); if (ph === 'nuit' || s.y < 40) R(s.x, s.y, 1, 1, a > .6 ? '#ffffff' : '#9aa3d8'); });
+    if (ph === 'nuit') { disc(306, 26, 8, '#f4ecd8'); disc(310, 23, 7, mix(pal.sky[0], pal.sky[1], .18)); }
+    else { const k = Math.min(1, Math.max(0, (h - 6) / 15)); const sx = 30 + k * (W - 60), sy = 70 - Math.sin(k * Math.PI) * 52; R(sx - 6, sy - 6, 12, 12, '#ffe27a'); R(sx - 4, sy - 8, 8, 16, '#ffe27a'); R(sx - 8, sy - 4, 16, 8, '#ffe27a'); R(sx - 4, sy - 4, 8, 8, '#fff2b8'); }
+  }
+  function hills(pal) {
+    for (let x = 0; x < W; x++) {
+      const f = 104 + Math.sin(x / 37) * 9 + Math.sin(x / 13 + 1) * 3; R(x, f, 1, GROUND - f, pal.far);
+      const n = 124 + Math.sin(x / 23 + 2) * 7 + Math.sin(x / 9) * 2; R(x, n, 1, GROUND - n, pal.near);
+    }
+  }
+  function clouds(t, ph) {
+    const col = ph === 'nuit' ? '#3a4170' : '#ffffff', sh = ph === 'nuit' ? '#2c3260' : '#dbe9f5';
+    CLOUDS.forEach((c) => {
+      const x = ((c.x + t / (90 / c.s)) % (W + 60)) - 40;
+      R(x, c.y + 4, 34 * c.s, 6, sh); R(x + 2, c.y, 30 * c.s, 8, col); R(x + 8 * c.s, c.y - 4, 12 * c.s, 6, col); R(x + 18 * c.s, c.y - 2, 10 * c.s, 4, col);
+    });
+  }
+  function ground(pal) {
+    R(0, GROUND, W, H - GROUND, pal.grass); R(0, GROUND, W, 2, pal.grassTop);
+    R(0, GROUND + 22, W, 7, '#c79a62'); R(0, GROUND + 22, W, 1, '#dcb37c'); R(0, GROUND + 28, W, 1, '#a57b48');
+    TUFTS.forEach((g) => { if (g.y < GROUND + 21 || g.y > GROUND + 30) { R(g.x, g.y, 1, 2, pal.dark); R(g.x + 2, g.y + 1, 1, 1, pal.dark); } });
+    FLOWERS.forEach((f) => { if (f.y > GROUND + 31) { R(f.x, f.y, 2, 2, f.c); R(f.x, f.y + 2, 1, 2, pal.dark); } });
+  }
+  function tree(x, pal, big) {
+    const s = big ? 1.25 : 1;
+    R(x - 2, GROUND - 10 * s, 4, 12 * s, '#6b4a2b');
+    const g1 = mix('#2f7a3a', pal.near, .2), g2 = mix('#46a24c', pal.near, .2);
+    [[0, -26, 10], [-7, -19, 8], [7, -19, 8], [0, -15, 9]].forEach(([dx, dy, r]) => {
+      for (let yy = -r; yy <= r; yy++) { const w = Math.round(Math.sqrt(r * r - yy * yy)); R(x + dx * s - w * s, GROUND + (dy + yy) * s, w * 2 * s, 1 * s + .5, yy < -r / 3 ? g2 : g1); }
+    });
+  }
+
+  // ---- Maisons et parcelles ----
+  function house(px, lit, alert, label) {
+    const base = GROUND + 4, x0 = px - 28;
+    R(x0 + 40, base - 58, 7, 16, '#7e8493'); R(x0 + 39, base - 60, 9, 3, '#5f6472');
+    for (let i = 0; i <= 22; i++) { const hw = 34 - i * 1.45; R(px - hw, base - 32 - i, hw * 2, 1, i % 3 === 0 ? '#8f3329' : '#b5473a'); }
+    R(x0, base - 32, 56, 32, '#e8d8b0');
+    for (let y = base - 26; y < base; y += 6) R(x0, y, 56, 1, '#d2bf92');
+    R(x0, base - 32, 56, 2, '#b8a57a');
+    R(px - 5, base - 18, 10, 18, '#7a4a2a'); R(px - 5, base - 18, 10, 1, '#5a341c'); R(px + 2, base - 9, 1, 1, '#f5c542');
+    [x0 + 6, x0 + 40].forEach((wx) => {
+      R(wx - 1, base - 26, 12, 11, '#5b3a22'); R(wx, base - 25, 10, 9, lit ? '#ffd86b' : '#9fd3e8');
+      R(wx + 4, base - 25, 1, 9, '#5b3a22'); R(wx, base - 21, 10, 1, '#5b3a22');
+      R(wx - 2, base - 14, 14, 2, '#8a5a32'); R(wx - 1, base - 16, 2, 2, '#e4574a'); R(wx + 4, base - 16, 2, 2, '#f5c542'); R(wx + 8, base - 16, 2, 2, '#e4574a');
+    });
+    // Panneau au nom de l'agent, planté devant la maison (rouge en cas d'alerte).
+    const bw = textW(label) + 8;
+    R(px - bw / 2 + 4, base + 8, 2, 8, '#6b4a2b'); R(px + bw / 2 - 6, base + 8, 2, 8, '#6b4a2b');
+    board(label, px, base + 3, alert ? '#c0392b' : '#9a6a3a', alert ? '#ff8b7e' : '#c08850');
+  }
+  function mailbox(mx, flag, count) {
+    const base = GROUND + 4;
+    R(mx, base - 14, 2, 14, '#6b4a2b');
+    R(mx - 5, base - 22, 12, 9, '#f5c542'); R(mx - 5, base - 22, 12, 1, '#ffe27a'); R(mx - 3, base - 19, 8, 1, '#3a2a10');
+    R(mx + 7, base - 22 - (flag ? 7 : 0), 1, 8, '#555a66'); R(mx + 8, base - 22 - (flag ? 7 : 0), 4, 3, '#e4574a');
+    if (count > 0) { R(mx - 8, base - 36, 18, 11, '#0c0d18'); R(mx - 7, base - 35, 16, 9, '#f4ecd8'); ctx.font = '8px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = '#0c0d18'; ctx.fillText(String(count), mx + 1, base - 34); }
+  }
+  function emptyPlot(px) {
+    const base = GROUND + 4;
+    for (let x = px - 30; x <= px + 30; x += 6) R(x, base - 8, 2, 8, '#8a5a32');
+    R(px - 30, base - 6, 62, 1, '#a57b48'); R(px - 30, base - 3, 62, 1, '#a57b48');
+    R(px - 1, base - 24, 2, 16, '#6b4a2b');
+    board('À BÂTIR', px, base - 36, '#9a6a3a', '#c08850');
+  }
+
+  // ---- Habitant : il fait la tournée du jour d'après les vrais chiffres ----
+  const particles = [];
+  const hero = { x: 0, y: GROUND - 8, dir: 1, task: 'idle', wait: 60, carry: null, step: 0, target: null };
+  let agent = null, homeX = 0, mailX = 0;
+  function plan() {
+    const today = agent ? agent.aujourdhui : { emails: 0, sites_2_5: 0 };
+    const r = Math.random();
+    if (today.emails > 0 && r < .55) { hero.carry = 'letter'; hero.target = mailX - 9; hero.task = 'toMail'; }
+    else if (today.sites_2_5 > 0 && r < .8) { hero.carry = null; hero.target = W + 14; hero.task = 'explore'; }
+    else { hero.carry = null; hero.target = homeX - 40 + Math.random() * 70; hero.task = 'wander'; }
+  }
+  function updateHero(night) {
+    if (night) { hero.task = 'sleep'; hero.x = homeX - 4; return; }
+    if (hero.task === 'sleep') { hero.task = 'idle'; hero.wait = 40; }
+    if (hero.wait > 0) { hero.wait--; return; }
+    if (hero.task === 'idle') { plan(); return; }
+    if (hero.target !== null) {
+      const d = hero.target - hero.x;
+      if (Math.abs(d) > .6) { hero.dir = Math.sign(d); hero.x += hero.dir * .6; hero.step++; return; }
+      hero.x = hero.target; hero.target = null; hero.step = 0;
+      if (hero.task === 'toMail') { particles.push({ kind: 'letter', x: hero.x + 8, y: GROUND - 3, tx: mailX - 2, ty: GROUND - 15, life: 30 }); hero.carry = null; hero.task = 'back'; hero.target = homeX - 4; hero.wait = 25; }
+      else if (hero.task === 'explore') { hero.task = 'return'; hero.carry = 'crate'; hero.target = homeX + 30; hero.wait = 120; }
+      else if (hero.task === 'return') { hero.carry = null; hero.task = 'back'; hero.target = homeX - 4; hero.wait = 30; for (let i = 0; i < 6; i++) particles.push({ kind: 'spark', x: hero.x + 4, y: GROUND - 4, vx: (Math.random() - .5) * .8, vy: -Math.random() * 1.2, life: 30 }); }
+      else { hero.task = 'idle'; hero.wait = 50 + Math.random() * 80; }
+    }
+  }
+  function drawHero(alert, t) {
+    if (hero.task === 'sleep') return;
+    const x = Math.round(hero.x), y = GROUND - 8;
+    R(x + 1, y + 12, 8, 1, 'rgba(0,0,0,.25)');
+    drawSprite(HERO.top, HERO.pal, x, y, hero.dir < 0);
+    const legs = hero.target === null ? HERO.legs[0] : HERO.legs[1 + (Math.floor(hero.step / 8) % 2)];
+    drawSprite(legs, HERO.pal, x, y + 9, hero.dir < 0);
+    const hx = hero.dir > 0 ? x + 7 : x - 4;
+    if (hero.carry === 'letter') letter(hx, y + 5);
+    if (hero.carry === 'crate') crate(hero.dir > 0 ? x + 6 : x - 4, y + 3);
+    if (alert && Math.floor(t / 400) % 2 === 0) { R(x + 3, y - 11, 4, 8, '#e4574a'); R(x + 4, y - 10, 2, 4, '#ffffff'); R(x + 4, y - 5, 2, 1, '#ffffff'); }
+  }
+  function drawParticles(night, t) {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i]; p.life--;
+      if (p.kind === 'letter') { p.x += (p.tx - p.x) * .15; p.y += (p.ty - p.y) * .15; letter(p.x, p.y); }
+      else if (p.kind === 'spark') { p.x += p.vx; p.y += p.vy; p.vy += .05; R(p.x, p.y, 1, 1, '#f5c542'); }
+      else if (p.kind === 'smoke') { p.x += .15; p.y -= .25; R(p.x, p.y, 3, 3, night ? 'rgba(160,160,190,.5)' : 'rgba(255,255,255,.7)'); }
+      else if (p.kind === 'z') { p.x += .2; p.y -= .2; text('z', p.x, p.y, '#f4ecd8'); }
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+  }
+
+  // ---- Boucle ----
+  let plots = [], status = null, flashTimer = 0;
+  function layout() {
+    const n = Math.max(3, (status ? status.agents.length : 1) + 1);
+    plots = Array.from({ length: n }, (_, i) => Math.round((W / n) * (i + .5)));
+    const center = Math.floor(n / 2);
+    homeX = plots[center]; mailX = homeX + 40;
+    if (!hero.x) hero.x = homeX - 4;
+  }
+  function frame(t) {
+    const h = hourNow(), ph = phaseOf(h), pal = PAL[ph], night = ph === 'nuit';
+    const a = agent, today = a ? a.aujourdhui : null, alert = a && a.etat === 'alerte';
+    sky(pal, h, t); clouds(t, ph); hills(pal); ground(pal);
+    tree(16, pal, true); tree(W - 14, pal, true);
+    plots.forEach((px, i) => {
+      if (px === homeX) return;
+      if (i === 0 || i === plots.length - 1) { tree(px - 22, pal); }
+      emptyPlot(px);
+    });
+    house(homeX, night || ph === 'soir', alert, a ? a.nom.toUpperCase() : '…');
+    mailbox(mailX, today && today.reponses > 0, today ? today.emails : 0);
+    if (today) for (let i = 0; i < Math.min(8, Math.ceil(today.sites_2_5 / 2)); i++) crate(homeX + 44 + (i % 4) * 8, GROUND - 2 - Math.floor(i / 4) * 6);
+    updateHero(night); drawHero(alert, t);
+    if (!reduceMotion && t % 900 < 17 && today && today.emails > 0 && !night) particles.push({ kind: 'smoke', x: homeX + 13, y: GROUND - 58, life: 45 });
+    if (!reduceMotion && night && t % 1300 < 17) particles.push({ kind: 'z', x: homeX + 2, y: GROUND - 40, life: 80 });
+    drawParticles(night, t);
+    if (pal.overlay) { R(0, 0, W, H, `rgba(10,14,40,${pal.overlay})`); }
+    if (night || ph === 'soir') {
+      const base = GROUND + 4, x0 = homeX - 28;
+      [x0 + 6, x0 + 40].forEach((wx) => { R(wx, base - 25, 10, 9, '#ffd86b'); R(wx + 4, base - 25, 1, 9, '#5b3a22'); R(wx, base - 21, 10, 1, '#5b3a22'); R(wx - 3, base - 12, 16, 2, 'rgba(255,216,107,.25)'); });
+      STARS.slice(0, 20).forEach((s) => night && R(s.x, s.y, 1, 1, '#ffffff'));
+    }
+    if (flashTimer > 0) flashTimer--;
+    if (!status) text('CHARGEMENT…', W / 2, 90, '#f4ecd8', 'center');
+  }
+  let last = 0;
+  function loop(ts) {
+    if (!reduceMotion || ts - last > 1000) { frame(ts); last = ts; }
+    requestAnimationFrame(loop);
+  }
+
+  // ---- Fiches des agents ----
+  const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt !== undefined) e.textContent = txt; return e; };
+  const nf = new Intl.NumberFormat('fr-FR');
+  function cards() {
+    const box = document.getElementById('cards'); box.replaceChildren();
+    const night = phaseOf(hourNow()) === 'nuit';
+    status.agents.forEach((a) => {
+      const c = el('article', 'card'); c.id = 'agent-' + a.id;
+      c.append(el('h2', null, a.nom.toUpperCase()), el('div', 'role', a.role + ' · ' + a.mission));
+      const st = a.etat === 'alerte' ? ['alert', 'ALERTE'] : night ? ['rest', 'AU REPOS'] : ['ok', 'AU TRAVAIL'];
+      c.append(el('span', 'badge ' + st[0], st[1]));
+      if (a.alertes && a.alertes.length) { const ul = el('ul', 'alerts'); a.alertes.forEach((x) => ul.append(el('li', null, '! ' + x))); c.append(ul); }
+      const s = el('div', 'stats');
+      const t = a.aujourdhui;
+      [[t.emails, 'emails aujourd\'hui'], [t.reponses, 'réponses'], [t.rebonds, 'rebonds'], [t.sites_2_5, 'sites 2/5 trouvés'], [t.requetes, 'requêtes Google'], [a.total.contactes, 'contactés en tout']]
+        .forEach(([v, l]) => { const d = el('div', 'stat'); d.append(el('b', null, nf.format(v)), el('span', null, l)); s.append(d); });
+      c.append(s);
+      c.append(el('div', 'foot', `${t.nouveaux} nouveaux · ${t.relances} relances aujourd'hui · dernier envoi ${a.derniere_activite || '—'}`));
+      box.append(c);
+    });
+    const e = el('article', 'card empty'); e.append(el('h2', null, 'TERRAIN À BÂTIR'), el('div', null, 'Le prochain agent emménagera ici.'));
+    box.append(e);
+  }
+
+  cv.addEventListener('click', (ev) => {
+    const b = cv.getBoundingClientRect(), x = (ev.clientX - b.left) * W / b.width, y = (ev.clientY - b.top) * H / b.height;
+    if (agent && Math.abs(x - homeX) < 40 && y > GROUND - 70 && y < GROUND + 10) {
+      const c = document.getElementById('agent-' + agent.id); c.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+      c.classList.add('flash'); setTimeout(() => c.classList.remove('flash'), 1200);
+    }
+  });
+
+  layout();
+  document.fonts.load('8px "Press Start 2P"').finally(() => requestAnimationFrame(loop));
+  fetch('status.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => r.json()).then((d) => {
+    status = d; agent = d.agents[0]; layout(); cards();
+    const when = new Date(d.generated_at);
+    document.getElementById('sub').textContent = `${d.agents.length} agent · mis à jour le ${when.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} à ${when.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} · clique sur une maison`;
+  }).catch(() => { document.getElementById('sub').textContent = 'Impossible de charger l\'état des agents. Réessaie dans un instant.'; });
+})();
+</script>
+</body>
+</html>
