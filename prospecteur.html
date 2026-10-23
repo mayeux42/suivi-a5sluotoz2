@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Le Prospecteur</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Trois colonnes = trois moments de la journée de l'agent, reliés par des flèches ; la mémoire et les garde-fous en socle. */
+:root {
+  --bg: #f4f4f8; --panel: #ffffff; --ink: #1d1b2e; --muted: #5d5a72; --line: #dedce8;
+  --amber: #e9801f; --amber-soft: #fdeedd; --teal: #138a9f; --teal-soft: #dff3f6; --red: #c2410c;
+  --display: "Chakra Petch", "Arial Narrow", sans-serif; --body: "IBM Plex Sans", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15141f; --panel: #1f1d2c; --ink: #f1eff7; --muted: #aaa6bf; --line: #34314a;
+  --amber: #ffa24a; --amber-soft: #3a2a1a; --teal: #4fc6da; --teal-soft: #173039; --red: #ff8a5c; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #15141f; --panel: #1f1d2c; --ink: #f1eff7; --muted: #aaa6bf; --line: #34314a;
+  --amber: #ffa24a; --amber-soft: #3a2a1a; --teal: #4fc6da; --teal-soft: #173039; --red: #ff8a5c; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; }
+.wrap { max-width: 1120px; margin-inline: auto; padding-block: 32px 40px; padding-inline: 18px; display: flex; flex-direction: column; gap: 22px; }
+header h1 { margin: 0; font-family: var(--display); font-weight: 700; font-size: clamp(26px, 4vw, 38px); letter-spacing: 1px; text-wrap: balance; }
+header p { margin: 6px 0 0; color: var(--muted); font-size: 16px; max-width: 62ch; }
+.flow { display: grid; grid-template-columns: 1fr 40px 1fr 40px 1fr; align-items: stretch; }
+.arrow { display: grid; place-items: center; color: var(--amber); }
+.arrow svg { width: 26px; height: 26px; }
+@media (max-width: 860px) { .flow { grid-template-columns: 1fr; } .arrow { height: 34px; } .arrow svg { transform: rotate(90deg); } }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.stage-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.stage h2 { margin: 0; font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: 2px; color: var(--amber); }
+.when { font-size: 12px; font-weight: 600; letter-spacing: .5px; color: var(--teal); background: var(--teal-soft); padding: 3px 9px; border-radius: 999px; }
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.steps li { display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start; }
+.ic { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: var(--amber-soft); color: var(--amber); }
+.ic svg { width: 17px; height: 17px; }
+.steps b { display: block; font-weight: 600; }
+.steps span { display: block; color: var(--muted); font-size: 14px; }
+.out { margin-top: auto; border-top: 1px dashed var(--line); padding-top: 10px; font-size: 14px; color: var(--muted); }
+.out b { color: var(--ink); }
+.base { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 860px) { .base { grid-template-columns: 1fr; } }
+.box { border-radius: 14px; padding: 14px 16px; border: 1px solid var(--line); background: var(--panel); min-width: 0; }
+.box h3 { margin: 0 0 6px; font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: 1.5px; }
+.box p { margin: 0; font-size: 14px; color: var(--muted); }
+.box.mem { background: var(--teal-soft); border-color: transparent; }
+.box.mem h3 { color: var(--teal); }
+.box.safe h3 { color: var(--red); }
+.box.wake h3 { color: var(--amber); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.chips span { font-size: 13px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink); background: var(--bg); }
+
+.tools h2 { margin: 6px 0 4px; font-family: var(--display); font-weight: 700; font-size: 20px; letter-spacing: 2px; }
+.tools > p { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+.tgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 12px; }
+.tool { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; min-width: 0; font-size: 13px; }
+.tool h3 { margin: 0 0 2px; font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: 1px; color: var(--ink); }
+.tool .role { margin: 0 0 8px; color: var(--muted); }
+.tool dl { margin: 0; display: grid; grid-template-columns: 84px 1fr; gap: 4px 10px; }
+.tool dt { color: var(--muted); }
+.tool dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.tool code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 0 4px; }
+.tool .warn { color: var(--red); }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); width: fit-content; max-width: 100%; }
+.tabs a { font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 999px; color: var(--muted); text-decoration: none; }
+.tabs a:hover, .tabs a:focus-visible { color: var(--ink); outline: none; background: var(--bg); }
+.tabs a[aria-current="page"] { background: var(--ink); color: var(--panel); }
+html, body { margin: 0; }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <nav class="tabs" aria-label="Sections"><a href="./">Tableau de bord</a><a href="prospecteur.html" aria-current="page">Le Prospecteur</a><a href="village.html">Le village</a></nav>
+  <header>
+    <h1>Le Prospecteur</h1>
+    <p>Il trouve des plombiers dont le site a vieilli, leur propose une maquette gratuite par email, relance, et te dit chaque soir où il en est. Tout seul : cron-job.org le réveille à l'heure pile, GitHub fait le travail.</p>
+  </header>
+
+  <section class="flow" aria-label="Les trois étapes de l'agent">
+    <article class="stage">
+      <div class="stage-head"><h2>1 · TROUVER</h2><span class="when">chaque jour à 5 h</span></div>
+      <ol class="steps">
+        <li><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 21s-6-5.4-6-11a6 6 0 0 1 12 0c0 5.6-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg></div><div><b>Google Places</b><span>liste les plombiers d'une ville, ville après ville</span></div></li>
+        <li><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></div><div><b>Email sur le site</b><span>pas d'email, on s'arrête là (rien de payé)</span></div></li>
+        <li><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></svg></div><div><b>Claude note le site</b><span>photo du site, note sur 5, deux avis</span></div></li>
+      </ol>
+      <div class="out">Résultat : <b>2/5 ou moins</b> = prioritaire, <b>3/5</b> = réserve.</div>
+    </article>
+
+    <div class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+
+    <article class="stage">
+      <div class="stage-head"><h2>2 · ÉCRIRE</h2><span class="when">9 h, du lundi au vendredi</span></div>
+      <ol class="steps">
+        <li><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.4 7.8 8 9 4.6-1.2 8-4.5 8-9V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg></div><div><b>ZeroBounce vérifie</b><span>que la boîte mail existe vraiment</span></div></li>
+        <li><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></div><div><b>Claude écrit l'accroche</b><span>une phrase sur son site, sans le vexer</span></div></li>
+        <li><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 11 21 3l-6 18-3-8z"/></svg></div><div><b>Gmail envoie</b><span>20 par jour au début, jusqu'à 80</span></div></li>
+      </ol>
+      <div class="out">Relances : <b>J+3, J+7, J+14</b>, puis il arrête.</div>
+    </article>
+
+    <div class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+
+    <article class="stage">
+      <div class="stage-head"><h2>3 · SUIVRE</h2><span class="when">avant l'envoi et à 17 h</span></div>
+      <ol class="steps">
+        <li><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M4 4h16v12H8l-4 4z"/></svg></div><div><b>Lit ta boîte mail</b><span>réponses positives ou négatives, « stop », rebonds</span></div></li>
+        <li><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg></div><div><b>Arrête les relances</b><span>dès qu'un artisan a répondu</span></div></li>
+        <li><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></div><div><b>Te fait le bilan</b><span>un email à 17 h et le tableau de bord en ligne</span></div></li>
+      </ol>
+      <div class="out">Toi : tu <b>réponds aux intéressés</b>.</div>
+    </article>
+  </section>
+
+  <section class="base" aria-label="Mémoire, garde-fous et coûts">
+    <div class="box mem"><h3>SA MÉMOIRE</h3><p>Un Google Sheet : chaque artisan, sa note, son email, chaque envoi, chaque relance, chaque réponse.</p></div>
+    <div class="box safe"><h3>GARDE-FOUS</h3>
+      <div class="chips"><span>160 recherches Google / jour max</span><span>frein si plus de 6 % de rebonds</span><span>jamais 2 premiers emails à la même adresse</span><span>bouton STOP</span></div>
+    </div>
+    <div class="box wake"><h3>LE RÉVEIL</h3><p>cron-job.org (gratuit) appelle GitHub à 5 h, 9 h et 17 h, heure de Paris. Sans lui, GitHub lançait les tâches avec 5 à 7 heures de retard.</p></div>
+    <div class="box"><h3>CE QUE ÇA COÛTE</h3><p>Claude : environ 1 $ par jour. Google : couvert par le crédit gratuit. GitHub et cron-job.org : gratuits.</p></div>
+  </section>
+
+  <section class="tools" aria-label="Les outils et où les gérer">
+    <h2>LES OUTILS ET OÙ LES GÉRER</h2>
+    <p>Les clés ne sont jamais dans le code : elles sont rangées dans GitHub, dépôt privé, Settings → Secrets and variables → Actions.</p>
+    <div class="tgrid">
+      <article class="tool"><h3>Google Places API</h3><p class="role">Trouve les plombiers ville par ville.</p><dl>
+        <dt>Où</dt><dd>console.cloud.google.com · projet <code>agent-prospection</code> · API et services</dd>
+        <dt>Clé</dt><dd><code>GOOGLE_PLACES_API_KEY</code>, restreinte à « Places API (New) »</dd>
+        <dt>Coût</dt><dd>1 000 requêtes gratuites par mois, puis ~30 € les 1 000. Crédit d'essai 257 € jusqu'au 28/12/2026</dd>
+        <dt>Plafonds</dt><dd>160 par jour et 4 800 par mois (dans <code>config.yaml</code>). Alerte de budget à 200 € (Facturation → Budgets et alertes)</dd>
+        <dt class="warn">Attention</dt><dd>Ne pas cliquer « Upgrade » sans vérifier les plafonds</dd></dl></article>
+      <article class="tool"><h3>Claude (Anthropic)</h3><p class="role">Note les sites, écrit les accroches, classe les réponses.</p><dl>
+        <dt>Où</dt><dd>console.anthropic.com · Usage et solde en haut à droite</dd>
+        <dt>Clé</dt><dd><code>ANTHROPIC_API_KEY</code></dd>
+        <dt>Coût</dt><dd>~1 $ par jour au rythme actuel</dd>
+        <dt>Modèles</dt><dd>Haiku : 1er avis et classement · Sonnet : 2e avis · Opus : accroches</dd>
+        <dt class="warn">Attention</dt><dd>Recharge manuelle : garder au moins 10 $. Solde à zéro = plus de crawl</dd></dl></article>
+      <article class="tool"><h3>ZeroBounce</h3><p class="role">Vérifie qu'une boîte mail existe avant le 1er email.</p><dl>
+        <dt>Où</dt><dd>zerobounce.net · Management → API</dd>
+        <dt>Clé</dt><dd><code>ZEROBOUNCE_API_KEY</code></dd>
+        <dt>Coût</dt><dd>100 vérifications gratuites par mois (renouvelées le 1er), puis packs payants</dd>
+        <dt>Sans crédit</dt><dd>l'envoi continue sans vérification, le bilan le signale</dd></dl></article>
+      <article class="tool"><h3>Gmail · Google Workspace</h3><p class="role">Envoie les emails et lit les réponses.</p><dl>
+        <dt>Compte</dt><dd><code>contact@mdwagency.com</code>, envoi sous l'alias <code>guillaume@</code></dd>
+        <dt>Mot de passe</dt><dd>mot de passe d'application (myaccount.google.com → Sécurité). Secrets <code>GMAIL_SMTP_USER</code>, <code>GMAIL_SMTP_LOGIN</code>, <code>GMAIL_APP_PASSWORD</code></dd>
+        <dt>Domaine</dt><dd>SPF, DKIM et DMARC en place. DMARC à passer de <code>p=none</code> à <code>p=quarantine</code> plus tard</dd>
+        <dt>Bilan</dt><dd>envoyé à l'adresse du secret <code>ALERT_EMAIL</code></dd></dl></article>
+      <article class="tool"><h3>Google Sheets</h3><p class="role">La mémoire : prospects, envois, relances, réponses.</p><dl>
+        <dt>Fichier</dt><dd>l'ID est dans <code>config.yaml</code> (sheets.spreadsheet_id)</dd>
+        <dt>Accès</dt><dd>compte de service Google Cloud (IAM → Comptes de service), partagé sur le fichier. Secret <code>GOOGLE_SERVICE_ACCOUNT_JSON</code></dd>
+        <dt>Onglets</dt><dd>prospects, écartés, contactés, à contacter, quota, zones_faites, runs</dd></dl></article>
+      <article class="tool"><h3>GitHub</h3><p class="role">Fait tourner l'agent et héberge les pages.</p><dl>
+        <dt>Code</dt><dd>dépôt privé <code>mayeux42/agent-prospection</code> · onglet Actions pour voir chaque passage</dd>
+        <dt>Interrupteurs</dt><dd>variables <code>AUTO_ENVOI</code> et <code>AUTO_CRAWL</code> (mettre <code>false</code> pour couper)</dd>
+        <dt>Pages</dt><dd>dépôt public <code>mayeux42/suivi-a5sluotoz2</code> : tableau de bord et Forge, publiés par une clé de déploiement (secret <code>DASHBOARD_DEPLOY_KEY</code>)</dd>
+        <dt>Coût</dt><dd>gratuit, 2 000 minutes par mois</dd></dl></article>
+      <article class="tool"><h3>cron-job.org</h3><p class="role">Le réveil : lance chaque tâche à l'heure pile.</p><dl>
+        <dt>Tâches</dt><dd>Agent – Crawl (5 h) · Agent – Envoi (9 h, lun → ven) · Agent – Bilan (17 h)</dd>
+        <dt>Clé</dt><dd>jeton GitHub « Reveil cron-job agent prospection », limité aux Actions du dépôt privé</dd>
+        <dt class="warn">Expire</dt><dd>le 22/10/2027 : en créer un nouveau et le recoller dans les 3 tâches</dd></dl></article>
+      <article class="tool"><h3>Pages de suivi</h3><p class="role">Où regarder.</p><dl>
+        <dt>Tableau</dt><dd><code>mayeux42.github.io/suivi-a5sluotoz2</code></dd>
+        <dt>Forge</dt><dd><code>…/suivi-a5sluotoz2/village.html</code></dd>
+        <dt>Arrêt</dt><dd>créer un fichier <code>STOP</code> à la racine du dépôt privé : plus aucun envoi</dd></dl></article>
+    </div>
+  </section>
+</div>
+
+</body>
+</html>
