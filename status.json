@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-23T21:32:27+00:00",
- "jour": "2026-10-23",
+ "generated_at": "2026-10-24T15:01:20+00:00",
+ "jour": "2026-10-24",
  "agents": [
   {
    "id": "prospection",
@@ -11,12 +11,12 @@
    "alertes": [],
    "derniere_activite": "2026-10-23 11:36",
    "aujourdhui": {
-    "emails": 30,
-    "nouveaux": 7,
-    "relances": 23,
-    "reponses": 1,
+    "emails": 0,
+    "nouveaux": 0,
+    "relances": 0,
+    "reponses": 0,
     "rebonds": 0,
-    "sites_2_5": 24,
+    "sites_2_5": 27,
     "requetes": 160
    },
    "total": {
