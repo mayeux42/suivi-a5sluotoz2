@@ -97,7 +97,7 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
   <header class="sp-head" id="entete">
     <div>
       <h1>Suivi prospection</h1>
-      <p class="sp-sub">Mis à jour le <span id="maj-heure">—</span> · mises à jour vers 9 h (lundi au vendredi) et 17 h · période : du <span id="w-debut">—</span> au <span id="w-fin">—</span></p>
+      <p class="sp-sub">Mis à jour le <span id="maj-heure">—</span> · mises à jour vers 9 h (lundi au vendredi) et 17 h</p>
     </div>
     <div class="sp-ctls">
       <div class="seg" id="seg-w" role="group" aria-label="Période">
@@ -397,8 +397,6 @@ const dash = (() => {
         .formatToParts(new Date(gen)).map((x) => [x.type, x.value]));
       $('#maj-heure').textContent = `${p.day} ${p.month} à ${p.hour} h ${p.minute}`;
     }
-    $('#w-debut').textContent = from ? F.date(from) : '—';
-    $('#w-fin').textContent = to ? F.date(to) : '—';
 
     // Graphiques : les jours de la période (des semaines au-delà de 45 jours)
     const span = from && to ? (new Date(to) - new Date(from)) / 864e5 : 0;
