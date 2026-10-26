@@ -150,6 +150,12 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
     <div class="sk" id="sankey" data-source="flux"></div>
   </section>
 
+  <section class="card" id="ab-card" hidden>
+    <div class="card-h"><h2>Test A/B : maquette ou email classique</h2><div class="legend">depuis le lancement du test, rebonds exclus</div></div>
+    <div class="miles" id="ab"></div>
+    <p class="note">La moitié des nouveaux prospects (tirée au hasard, toujours la même pour une adresse) reçoit le lien de sa maquette dès le premier email ; l'autre moitié reçoit l'email actuel. Compter au moins 2 à 3 semaines et une centaine de prospects par groupe avant de conclure.</p>
+  </section>
+
   <section class="card" id="projection-card">
     <div class="card-h"><h2>Projection : prospects contactés</h2><div class="legend" id="proj-legend"></div></div>
     <div class="miles" id="miles"></div>
@@ -429,6 +435,18 @@ const dash = (() => {
 
     const fl = rowsOf('flux');
     if (fl) sankey($('#sankey'), fl); else if (failed('flux')) line($('#sankey'), 'Échec du chargement', true);
+
+    const ab = (rowsOf('ab') || []).filter((r) => r.contactes > 0);
+    $('#ab-card').hidden = !ab.length;
+    if (ab.length) {
+      $('#ab').replaceChildren(...ab.map((r) => {
+        const d = document.createElement('div'); d.className = 'mile';
+        const n = document.createElement('span'); n.className = 'n'; n.textContent = F.pct(r.taux);
+        const w = document.createElement('span'); w.className = 'w';
+        w.textContent = `${r.variante} : ${F.int(r.reponses)} réponses sur ${F.int(r.contactes)} (${F.int(r.positives)} positives)`;
+        d.append(n, w); return d;
+      }));
+    }
 
     const pr = rowsOf('projection'), jl = rowsOf('jalons') || [];
     if (pr) {
