@@ -43,6 +43,7 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
 .seg button { font: inherit; font-size: var(--cds-font-size-caption); padding: 6px 14px; border: 0; background: transparent; color: var(--color-fg-muted); cursor: pointer; }
 .seg button + button { border-left: 1px solid var(--color-border-line); }
 .seg button[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); }
+.seg-sm button { padding: 4px 9px; }
 .row1 { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--cds-gap-sm); align-items: stretch; }
 @media (max-width: 960px) { .row1 { grid-template-columns: minmax(0, 1fr); } }
 .card { position: relative; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
@@ -137,9 +138,11 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
     </div>
 
     <div class="card" id="claude-card">
-      <div class="card-h"><h2>Claude</h2><div class="legend">dollars</div></div>
+      <div class="card-h"><h2>Dépenses</h2><div class="seg seg-sm" id="seg-dep" role="group" aria-label="Type de dépense">
+        <button type="button" data-t="tout" aria-pressed="true">Tout</button><button type="button" data-t="claude" aria-pressed="false">Claude</button><button type="button" data-t="zerobounce" aria-pressed="false">ZeroBounce</button><button type="button" data-t="google" aria-pressed="false">Google</button>
+      </div></div>
       <div class="kpis">
-        <div class="kpi"><div class="lbl">Dépense</div><div class="big" data-source="fenetres" data-where="fenetre=tout" data-field="cout_usd" data-fmt="usd">—</div><div class="sub">estimation d'après la console</div></div>
+        <div class="kpi"><div class="lbl" id="dep-lbl">Total sur la période</div><div class="big" id="dep-total">—</div><div class="sub" id="dep-detail">—</div></div>
       </div>
       <div class="chart" id="couts-chart" data-source="couts"></div>
       <div class="gbox" id="zb-box">
@@ -197,6 +200,7 @@ const dash = (() => {
     int: (v) => nf.format(v),
     eur: (v) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v),
     usd: (v) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'USD' }).format(v),
+    eur2: (v) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(v),
     pct: (v) => new Intl.NumberFormat('fr-FR', { style: 'percent', maximumFractionDigits: 1 }).format(v),
     date: (v) => new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(v)),
   };
@@ -205,6 +209,7 @@ const dash = (() => {
   const TITLES = ['Sites', 'Email', 'Cible', 'Envoi', 'Relances', 'Réponse'];
   let win = 'tout';
   let custom = null; // période choisie à la main : {from, to}
+  let depType = 'tout'; // filtre de la carte Dépenses
   const marks = [...document.querySelectorAll('[data-source="fenetres"][data-field]')];
   const sum = (rows, key) => rows.reduce((t, r) => t + (r[key] || 0), 0);
   const plus6 = (d) => new Date(new Date(d).getTime() + 6 * 864e5).toISOString().slice(0, 10);
@@ -239,7 +244,7 @@ const dash = (() => {
     const y = d3.scaleLinear([0, top], [h - m.b, m.t]).nice(3);
     y.ticks(3).forEach((t) => {
       svg.append('line').attr('x1', m.l).attr('x2', w - m.r).attr('y1', y(t)).attr('y2', y(t)).attr('stroke', 'var(--cds-chart-grid)').attr('stroke-width', 1);
-      svg.append('text').attr('x', m.l - 5).attr('y', y(t) + 3).attr('text-anchor', 'end').text(series[0].fmt === F.usd ? '$' + nf.format(t) : nf.format(t));
+      svg.append('text').attr('x', m.l - 5).attr('y', y(t) + 3).attr('text-anchor', 'end').text(series[0].fmt === F.usd ? '$' + nf.format(t) : series[0].fmt === F.eur2 ? nf.format(t) + ' €' : nf.format(t));
     });
     rows.forEach((r, i) => {
       let acc = 0;
@@ -380,7 +385,8 @@ const dash = (() => {
         const premiers = sum(er, 'nouveaux'), relances = sum(er, 'relances'), rebonds = sum(er, 'rebonds');
         vals = { emails: premiers + relances, premiers, relances, reponses: sum(er, 'reponses'), rebonds,
           taux_nouveaux: premiers ? rebonds / premiers : 0, taux_total: premiers + relances ? rebonds / (premiers + relances) : 0,
-          sites_2_5: sum(cr0.filter(inr), 'deux_cinq'), cout_usd: Math.round(sum(co0.filter(inr), 'usd') * 100) / 100 };
+          sites_2_5: sum(cr0.filter(inr), 'deux_cinq'), cout_usd: Math.round(sum(co0.filter(inr), 'usd') * 100) / 100,
+          dep_claude: sum(co0.filter(inr), 'claude'), dep_zerobounce: sum(co0.filter(inr), 'zerobounce'), dep_google: sum(co0.filter(inr), 'google') };
       }
     }
     marks.forEach((el) => {
@@ -396,7 +402,7 @@ const dash = (() => {
       $('#zb-credits').textContent = k.zb_credits == null ? '—' : F.int(k.zb_credits);
       $('#zb-credits').style.color = k.zb_credits != null && k.zb_credits < 60 ? 'var(--color-bad)' : '';
       $('#zb-mois').textContent = k.zb_mois == null ? '—' : F.int(k.zb_mois);
-      $('#zb-cout').textContent = k.zb_cout_mois_eur == null ? '' : ` · ${F.eur(k.zb_cout_mois_eur)}`;
+      $('#zb-cout').textContent = k.zb_cout_mois_eur == null ? '' : ` · ${F.eur2(k.zb_cout_mois_eur)}`;
     }
     if (k) { $('#m-free > div').style.width = Math.min(100, (k.requetes_mois / k.quota_gratuit) * 100) + '%'; $('#m-free > div').style.background = dash.colors[0]; }
 
@@ -440,8 +446,21 @@ const dash = (() => {
       barChart($('#crawl-chart'), cr, s, 110, label);
     } else if (failed('crawl')) line($('#crawl-chart'), 'Échec du chargement', true);
 
+    // Dépenses : total de la période pour le type choisi, détail par type, barres empilées.
+    const TYPES = [{ key: 'claude', label: 'Claude', color: c[3], fmt: F.eur2 }, { key: 'zerobounce', label: 'ZeroBounce', color: c[5], fmt: F.eur2 },
+      { key: 'google', label: 'Google (crédit d\'essai)', color: c[0], fmt: F.eur2 }];
+    const shown = depType === 'tout' ? TYPES : TYPES.filter((t) => t.key === depType);
+    document.querySelectorAll('#seg-dep button').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.t === depType)));
+    if (vals) {
+      const v = (t) => vals['dep_' + t] || 0;
+      $('#dep-total').textContent = F.eur2(shown.reduce((n, t) => n + v(t.key), 0));
+      $('#dep-lbl').textContent = depType === 'tout' ? 'Total sur la période' : `${shown[0].label} sur la période`;
+      $('#dep-detail').textContent = depType === 'tout'
+        ? TYPES.map((t) => `${t.label.split(' ')[0]} ${F.eur2(v(t.key))}`).join(' · ') + (v('google') ? ' (Google payé par le crédit d\'essai)' : '')
+        : depType === 'claude' ? `soit ${F.usd(vals.cout_usd || 0)} facturés en dollars` : depType === 'google' ? 'au-delà des 1 000 requêtes gratuites par mois, payé par le crédit d\'essai' : 'achats de crédits de vérification';
+    }
     const co = pick('couts');
-    if (co) barChart($('#couts-chart'), co, [{ key: 'usd', label: 'Claude', color: c[3], fmt: F.usd }], 150, label);
+    if (co) barChart($('#couts-chart'), co, shown, 150, label);
     else if (failed('couts')) line($('#couts-chart'), 'Échec du chargement', true);
 
     const fl = rowsOf('flux');
@@ -468,6 +487,7 @@ const dash = (() => {
   }
 
   document.querySelectorAll('#seg-w button').forEach((b) => b.addEventListener('click', () => { custom = null; win = b.dataset.w; render(); }));
+  document.querySelectorAll('#seg-dep button').forEach((b) => b.addEventListener('click', () => { depType = b.dataset.t; render(); }));
   const onDate = () => {
     const f = $('#d-from'), t = $('#d-to');
     if (!f.value || !t.value || !f.validity.valid || !t.validity.valid || f.value > t.value) return;
