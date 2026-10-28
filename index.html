@@ -81,6 +81,7 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
 .mile .n { font-family: var(--font-anthropic-serif); font-size: 1.35rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .mile .w { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
 .note { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.45; }
+[hidden] { display: none !important; } /* les cartes et blocs en flex ignorent sinon l'attribut hidden */
 [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
 
 .tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; margin: 0 0 18px; border-radius: 999px; background: var(--color-panel); border: 1px solid var(--color-border-line); width: fit-content; max-width: 100%; }
@@ -139,14 +140,14 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
 
     <div class="card" id="claude-card">
       <div class="card-h"><h2>Dépenses</h2><div class="seg seg-sm" id="seg-dep" role="group" aria-label="Type de dépense">
-        <button type="button" data-t="tout" aria-pressed="true">Tout</button><button type="button" data-t="claude" aria-pressed="false">Claude</button><button type="button" data-t="zerobounce" aria-pressed="false">ZeroBounce</button><button type="button" data-t="google" aria-pressed="false">Google</button>
+        <button type="button" data-t="tout" aria-pressed="true">Tout</button><button type="button" data-t="claude" aria-pressed="false">Claude</button><button type="button" data-t="zerobounce" aria-pressed="false">ZeroBounce</button>
       </div></div>
       <div class="kpis">
         <div class="kpi"><div class="lbl" id="dep-lbl">Total sur la période</div><div class="big" id="dep-total">—</div><div class="sub" id="dep-detail">—</div></div>
       </div>
       <div class="chart" id="couts-chart" data-source="couts"></div>
-      <div class="gbox" id="zb-box">
-        <div class="gline"><span>ZeroBounce : crédits restants</span><span><b id="zb-credits">—</b></span></div>
+      <div class="gbox" id="zb-box" hidden>
+        <div class="gline"><span>Crédits restants</span><span><b id="zb-credits">—</b></span></div>
         <div class="gline"><span>Vérifications ce mois-ci</span><span><b id="zb-mois">—</b><span id="zb-cout"></span></span></div>
       </div>
     </div>
@@ -398,7 +399,6 @@ const dash = (() => {
       el.textContent = k && k[el.dataset.field] !== undefined ? F[el.dataset.fmt || 'int'](k[el.dataset.field]) : (failed('kpis') ? 'Échec' : '—');
     });
     if (k) {
-      $('#zb-box').hidden = k.zb_credits == null;
       $('#zb-credits').textContent = k.zb_credits == null ? '—' : F.int(k.zb_credits);
       $('#zb-credits').style.color = k.zb_credits != null && k.zb_credits < 60 ? 'var(--color-bad)' : '';
       $('#zb-mois').textContent = k.zb_mois == null ? '—' : F.int(k.zb_mois);
@@ -447,20 +447,23 @@ const dash = (() => {
     } else if (failed('crawl')) line($('#crawl-chart'), 'Échec du chargement', true);
 
     // Dépenses : total de la période pour le type choisi, détail par type, barres empilées.
-    const TYPES = [{ key: 'claude', label: 'Claude', color: c[3], fmt: F.eur2 }, { key: 'zerobounce', label: 'ZeroBounce', color: c[5], fmt: F.eur2 },
-      { key: 'google', label: 'Google (crédit d\'essai)', color: c[0], fmt: F.eur2 }];
+    // Seulement l'argent réellement payé : Google est couvert par le crédit d'essai, il n'y figure pas.
+    const TYPES = [{ key: 'claude', label: 'Claude', color: c[3], fmt: F.eur2 }, { key: 'zerobounce', label: 'ZeroBounce', color: c[5], fmt: F.eur2 }];
     const shown = depType === 'tout' ? TYPES : TYPES.filter((t) => t.key === depType);
     document.querySelectorAll('#seg-dep button').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.t === depType)));
     if (vals) {
       const v = (t) => vals['dep_' + t] || 0;
       $('#dep-total').textContent = F.eur2(shown.reduce((n, t) => n + v(t.key), 0));
       $('#dep-lbl').textContent = depType === 'tout' ? 'Total sur la période' : `${shown[0].label} sur la période`;
-      $('#dep-detail').textContent = depType === 'tout'
-        ? TYPES.map((t) => `${t.label.split(' ')[0]} ${F.eur2(v(t.key))}`).join(' · ') + (v('google') ? ' (Google payé par le crédit d\'essai)' : '')
-        : depType === 'claude' ? `soit ${F.usd(vals.cout_usd || 0)} facturés en dollars` : depType === 'google' ? 'au-delà des 1 000 requêtes gratuites par mois, payé par le crédit d\'essai' : 'achats de crédits de vérification';
+      $('#dep-detail').textContent = depType === 'tout' ? TYPES.map((t) => `${t.label} ${F.eur2(v(t.key))}`).join(' · ')
+        : depType === 'claude' ? `soit ${F.usd(vals.cout_usd || 0)} facturés en dollars` : 'achats de crédits de vérification';
     }
+    // Onglet ZeroBounce : le solde et les vérifications à la place du graphique (la carte garde sa taille).
+    const zb = depType === 'zerobounce';
+    $('#zb-box').hidden = !zb;
+    $('#couts-chart').hidden = zb;
     const co = pick('couts');
-    if (co) barChart($('#couts-chart'), co, shown, 150, label);
+    if (co && !zb) barChart($('#couts-chart'), co, shown, 150, label);
     else if (failed('couts')) line($('#couts-chart'), 'Échec du chargement', true);
 
     const fl = rowsOf('flux');
