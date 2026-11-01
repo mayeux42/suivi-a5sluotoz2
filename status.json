@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-31T21:45:58+00:00",
- "jour": "2026-10-31",
+ "generated_at": "2026-11-01T16:01:45+00:00",
+ "jour": "2026-11-01",
  "agents": [
   {
    "id": "prospection",
@@ -16,7 +16,7 @@
     "relances": 0,
     "reponses": 0,
     "rebonds": 0,
-    "sites_2_5": 18,
+    "sites_2_5": 4,
     "requetes": 160
    },
    "total": {
