@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-01T22:14:13+00:00",
- "jour": "2026-11-01",
+ "generated_at": "2026-11-02T09:12:39+00:00",
+ "jour": "2026-11-02",
  "agents": [
   {
    "id": "prospection",
@@ -9,19 +9,19 @@
    "mission": "Trouve des plombiers au site daté et leur propose une maquette.",
    "etat": "ok",
    "alertes": [],
-   "derniere_activite": "2026-10-30 09:39",
+   "derniere_activite": "2026-11-02 10:12",
    "aujourdhui": {
-    "emails": 0,
-    "nouveaux": 0,
-    "relances": 0,
+    "emails": 46,
+    "nouveaux": 1,
+    "relances": 45,
     "reponses": 0,
-    "rebonds": 0,
-    "sites_2_5": 4,
-    "requetes": 160
+    "rebonds": 1,
+    "sites_2_5": 0,
+    "requetes": 0
    },
    "total": {
-    "contactes": 159,
-    "emails": 335,
+    "contactes": 160,
+    "emails": 381,
     "reponses": 2
    }
   }
