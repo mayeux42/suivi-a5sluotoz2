@@ -118,7 +118,7 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
     <div class="card" id="envois-card">
       <div class="card-h"><h2>Emails</h2><div class="legend" id="envois-legend"></div></div>
       <div class="kpis">
-        <div class="kpi"><div class="lbl">Envoyés</div><div class="big" data-source="fenetres" data-where="fenetre=tout" data-field="emails" data-fmt="int">—</div><div class="sub"><span data-source="fenetres" data-where="fenetre=tout" data-field="premiers" data-fmt="int">—</span> nouveaux · <span data-source="fenetres" data-where="fenetre=tout" data-field="relances" data-fmt="int">—</span> relances</div></div>
+        <div class="kpi"><div class="lbl">Envoyés</div><div class="big" data-source="fenetres" data-where="fenetre=tout" data-field="emails" data-fmt="int">—</div><div class="sub"><span data-source="fenetres" data-where="fenetre=tout" data-field="premiers" data-fmt="int">—</span> nouveaux · <span data-source="fenetres" data-where="fenetre=tout" data-field="relances" data-fmt="int">—</span> relances</div><div class="sub">dont <span data-source="fenetres" data-where="fenetre=tout" data-field="premiers_maquette" data-fmt="int">—</span> nouveaux avec maquette</div></div>
         <div class="kpi"><div class="lbl">Réponses</div><div class="big" data-source="fenetres" data-where="fenetre=tout" data-field="reponses" data-fmt="int">—</div><div class="sub">de prospects</div></div>
         <div class="kpi small boxed"><div class="lbl">Rebonds</div><div class="big" data-source="fenetres" data-where="fenetre=tout" data-field="rebonds" data-fmt="int">—</div><div class="sub"><b data-source="fenetres" data-where="fenetre=tout" data-field="taux_nouveaux" data-fmt="pct">—</b> des nouveaux</div><div class="sub"><b data-source="fenetres" data-where="fenetre=tout" data-field="taux_total" data-fmt="pct">—</b> de tous les emails</div></div>
       </div>
@@ -159,13 +159,15 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
   </section>
 
   <section class="card" id="ab-card" hidden>
-    <div class="card-h"><h2>Test A/B : maquette ou email classique</h2><div class="legend">depuis le lancement du test, rebonds exclus</div></div>
+    <div class="card-h"><h2>Maquettes : effet sur les réponses</h2><div class="legend">taux de réponse, rebonds exclus</div></div>
     <div class="miles" id="ab"></div>
-    <p class="note">La moitié des nouveaux prospects (tirée au hasard, toujours la même pour une adresse) reçoit le lien de sa maquette dès le premier email ; l'autre moitié reçoit l'email actuel. Compter au moins 2 à 3 semaines et une centaine de prospects par groupe avant de conclure.</p>
+    <p class="note">Depuis le 3 novembre, chaque nouveau prospect reçoit le lien de sa maquette dès le premier email. Comparaison avec les prospects contactés avant, par l'email classique. Compter 2 à 3 semaines et une centaine de prospects avant de conclure.</p>
   </section>
 
   <section class="card" id="projection-card">
-    <div class="card-h"><h2>Projection : prospects contactés</h2><div class="legend" id="proj-legend"></div></div>
+    <div class="card-h"><h2 id="proj-title">Projection : prospects contactés</h2><div class="legend" id="proj-legend"></div><div class="seg seg-sm" id="seg-proj" role="group" aria-label="Vue de la projection">
+      <button type="button" data-v="prospects" aria-pressed="true">Prospects</button><button type="button" data-v="emails" aria-pressed="false">Nouveaux et relances</button>
+    </div></div>
     <div class="miles" id="miles"></div>
     <div class="chart" id="proj-chart" data-source="projection"></div>
     <p class="note">Estimation recalculée chaque jour avec les règles de l'agent : envoi du lundi au vendredi, plafond qui monte de 20 à 80 emails par jour, relances à J+3, J+7 et J+14 prioritaires, au moins 25 % de nouveaux par jour. Le crawl alimente ~45 prospects par jour jusqu'à la fin du crédit Google (28/12), puis ~10 par jour.</p>
@@ -211,6 +213,7 @@ const dash = (() => {
   let win = 'tout';
   let custom = null; // période choisie à la main : {from, to}
   let depType = 'tout'; // filtre de la carte Dépenses
+  let projView = 'prospects'; // vue de la projection : cumul des prospects ou emails par semaine
   const marks = [...document.querySelectorAll('[data-source="fenetres"][data-field]')];
   const sum = (rows, key) => rows.reduce((t, r) => t + (r[key] || 0), 0);
   const plus6 = (d) => new Date(new Date(d).getTime() + 6 * 864e5).toISOString().slice(0, 10);
@@ -384,7 +387,7 @@ const dash = (() => {
         const inr = (r) => r.periode === 'jour' && r.debut >= from && r.debut <= to;
         const er = e.filter(inr);
         const premiers = sum(er, 'nouveaux'), relances = sum(er, 'relances'), rebonds = sum(er, 'rebonds');
-        vals = { emails: premiers + relances, premiers, relances, reponses: sum(er, 'reponses'), rebonds,
+        vals = { emails: premiers + relances, premiers, relances, premiers_maquette: sum(er, 'maquette'), reponses: sum(er, 'reponses'), rebonds,
           taux_nouveaux: premiers ? rebonds / premiers : 0, taux_total: premiers + relances ? rebonds / (premiers + relances) : 0,
           sites_2_5: sum(cr0.filter(inr), 'deux_cinq'), cout_usd: Math.round(sum(co0.filter(inr), 'usd') * 100) / 100,
           dep_claude: sum(co0.filter(inr), 'claude'), dep_zerobounce: sum(co0.filter(inr), 'zerobounce'), dep_google: sum(co0.filter(inr), 'google') };
@@ -434,7 +437,8 @@ const dash = (() => {
 
     const e = pick('envois');
     if (e) {
-      const s = [{ key: 'nouveaux', label: 'Nouveaux', color: c[0], fmt: F.int }, { key: 'relances', label: 'Relances', color: c[1], fmt: F.int }];
+      const s = [{ key: 'sans_maquette', label: 'Nouveaux sans maquette', color: c[0], fmt: F.int }, { key: 'maquette', label: 'Nouveaux avec maquette', color: c[4], fmt: F.int },
+        { key: 'relances', label: 'Relances', color: c[1], fmt: F.int }];
       $('#envois-legend').replaceChildren(...s.map((x) => swatch(x.color, x.label)));
       barChart($('#envois-chart'), e, s, 150, label);
     } else if (failed('envois')) line($('#envois-chart'), 'Échec du chargement', true);
@@ -470,7 +474,8 @@ const dash = (() => {
     if (fl) sankey($('#sankey'), fl); else if (failed('flux')) line($('#sankey'), 'Échec du chargement', true);
 
     const ab = (rowsOf('ab') || []).filter((r) => r.contactes > 0);
-    $('#ab-card').hidden = !ab.length;
+    // La carte apparaît dès que des emails avec maquette sont partis.
+    $('#ab-card').hidden = !ab.some((r) => r.variante === 'Avec maquette');
     if (ab.length) {
       $('#ab').replaceChildren(...ab.map((r) => {
         const d = document.createElement('div'); d.className = 'mile';
@@ -482,7 +487,22 @@ const dash = (() => {
     }
 
     const pr = rowsOf('projection'), jl = rowsOf('jalons') || [];
-    if (pr) {
+    document.querySelectorAll('#seg-proj button').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.v === projView)));
+    if (pr && projView === 'emails') {
+      // Emails prévus par semaine (lundi), nouveaux et relances empilés.
+      const wk = new Map();
+      pr.forEach((r) => {
+        const d = new Date(r.jour + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
+        const k0 = d.toISOString().slice(0, 10), o = wk.get(k0) || { debut: k0, nouveaux: 0, relances: 0 };
+        o.nouveaux += r.nouveaux; o.relances += r.relances; wk.set(k0, o);
+      });
+      const s = [{ key: 'nouveaux', label: 'Nouveaux', color: c[0], fmt: F.int }, { key: 'relances', label: 'Relances', color: c[1], fmt: F.int }];
+      $('#proj-title').textContent = 'Projection : emails par semaine';
+      $('#proj-legend').replaceChildren(...s.map((x) => swatch(x.color, x.label)));
+      barChart($('#proj-chart'), [...wk.values()], s, 240, (d) => 'Sem. ' + dShort.format(new Date(d)));
+      miles($('#miles'), pr, jl, k ? k.maj : pr[0].jour);
+    } else if (pr) {
+      $('#proj-title').textContent = 'Projection : prospects contactés';
       $('#proj-legend').replaceChildren(swatch(c[2], 'prospects contactés (cumul)'), document.createTextNode('6 prochains mois'));
       projChart($('#proj-chart'), pr, jl, c[2]);
       miles($('#miles'), pr, jl, k ? k.maj : pr[0].jour);
@@ -491,6 +511,7 @@ const dash = (() => {
 
   document.querySelectorAll('#seg-w button').forEach((b) => b.addEventListener('click', () => { custom = null; win = b.dataset.w; render(); }));
   document.querySelectorAll('#seg-dep button').forEach((b) => b.addEventListener('click', () => { depType = b.dataset.t; render(); }));
+  document.querySelectorAll('#seg-proj button').forEach((b) => b.addEventListener('click', () => { projView = b.dataset.v; render(); }));
   const onDate = () => {
     const f = $('#d-from'), t = $('#d-to');
     if (!f.value || !t.value || !f.validity.valid || !t.validity.valid || f.value > t.value) return;
