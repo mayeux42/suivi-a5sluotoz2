@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-02T09:12:39+00:00",
+ "generated_at": "2026-11-02T16:01:46+00:00",
  "jour": "2026-11-02",
  "agents": [
   {
@@ -16,8 +16,8 @@
     "relances": 45,
     "reponses": 0,
     "rebonds": 1,
-    "sites_2_5": 0,
-    "requetes": 0
+    "sites_2_5": 13,
+    "requetes": 160
    },
    "total": {
     "contactes": 160,
