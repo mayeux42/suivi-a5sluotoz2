@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-02T22:00:05+00:00",
- "jour": "2026-11-02",
+ "generated_at": "2026-11-02T23:02:37+00:00",
+ "jour": "2026-11-03",
  "agents": [
   {
    "id": "prospection",
@@ -11,13 +11,13 @@
    "alertes": [],
    "derniere_activite": "2026-11-02 17:15",
    "aujourdhui": {
-    "emails": 60,
-    "nouveaux": 4,
-    "relances": 56,
-    "reponses": 2,
-    "rebonds": 1,
-    "sites_2_5": 13,
-    "requetes": 167
+    "emails": 0,
+    "nouveaux": 0,
+    "relances": 0,
+    "reponses": 0,
+    "rebonds": 0,
+    "sites_2_5": 0,
+    "requetes": 0
    },
    "total": {
     "contactes": 163,
