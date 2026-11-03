@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-03T18:59:03+00:00",
+ "generated_at": "2026-11-03T20:02:31+00:00",
  "jour": "2026-11-03",
  "agents": [
   {
@@ -23,6 +23,25 @@
     "contactes": 181,
     "emails": 465,
     "reponses": 3
+   }
+  },
+  {
+   "id": "maquettes",
+   "nom": "Maquettiste",
+   "role": "Agent de maquettes",
+   "mission": "Dessine la maquette du futur site de chaque prospect avant le premier email.",
+   "etat": "ok",
+   "alertes": [],
+   "aujourdhui": {
+    "maquettes": 64,
+    "cout_usd": 9.09,
+    "envoyees": 18,
+    "pretes": 50
+   },
+   "total": {
+    "maquettes": 68,
+    "envoyees": 18,
+    "cout_usd": 10.55
    }
   }
  ]
