@@ -159,7 +159,7 @@ body.card-open .hint { opacity: 0; }
   <div class="today">
     <div><b id="m-made">—</b><span>dessinées</span></div>
     <div><b id="m-sent">—</b><span>envoyées</span></div>
-    <div><b id="m-ready">—</b><span>prêtes d'avance</span></div>
+    <div><b id="m-open">—</b><span>ouvertes par un artisan</span></div>
   </div>
   </div>
   <p class="credit">Décor : KayKit Space Base (Kay Lousberg, CC0) · Robots : RobotExpressive (Tomás Laulhé, CC0).</p>
@@ -745,7 +745,7 @@ body.card-open .hint { opacity: 0; }
       mqAgent._jour = d.jour; const m = mqAgent.aujourdhui;
       document.getElementById('m-made').textContent = nf.format(m.maquettes);
       document.getElementById('m-sent').textContent = nf.format(m.envoyees);
-      document.getElementById('m-ready').textContent = nf.format(m.pretes);
+      document.getElementById('m-open').textContent = nf.format(m.ouvertes || 0);
     }
     mqMode = computeMqMode();
     const a = agent.aujourdhui;

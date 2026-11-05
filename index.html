@@ -481,7 +481,8 @@ const dash = (() => {
         const d = document.createElement('div'); d.className = 'mile';
         const n = document.createElement('span'); n.className = 'n'; n.textContent = F.pct(r.taux);
         const w = document.createElement('span'); w.className = 'w';
-        w.textContent = `${r.variante} : ${F.int(r.reponses)} réponses sur ${F.int(r.contactes)} (${F.int(r.positives)} positives)`;
+        w.textContent = `${r.variante} : ${F.int(r.reponses)} réponses sur ${F.int(r.contactes)} (${F.int(r.positives)} positives)`
+          + (r.variante === 'Avec maquette' && r.contactes ? ` · maquettes : ${F.int(r.ouvertes || 0)} ouvertes (${F.pct((r.ouvertes || 0) / r.contactes)}), ${F.int(r.defilees || 0)} ont défilé, ${F.int(r.parcourues || 0)} parcourues` : '');
         d.append(n, w); return d;
       }));
     }
