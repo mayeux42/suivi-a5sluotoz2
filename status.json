@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-05T23:44:27+00:00",
+ "generated_at": "2026-11-06T09:51:41+00:00",
  "jour": "2026-11-06",
  "agents": [
   {
@@ -9,19 +9,19 @@
    "mission": "Trouve des plombiers au site daté et leur propose une maquette.",
    "etat": "ok",
    "alertes": [],
-   "derniere_activite": "2026-11-05 10:53",
+   "derniere_activite": "2026-11-06 10:50",
    "aujourdhui": {
-    "emails": 0,
-    "nouveaux": 0,
-    "relances": 0,
+    "emails": 80,
+    "nouveaux": 76,
+    "relances": 4,
     "reponses": 0,
     "rebonds": 0,
-    "sites_2_5": 0,
-    "requetes": 0
+    "sites_2_5": 17,
+    "requetes": 192
    },
    "total": {
-    "contactes": 322,
-    "emails": 625,
+    "contactes": 398,
+    "emails": 705,
     "reponses": 3
    }
   },
@@ -33,17 +33,17 @@
    "etat": "ok",
    "alertes": [],
    "aujourdhui": {
-    "maquettes": 0,
-    "cout_usd": 0.0,
-    "envoyees": 0,
-    "pretes": 13,
+    "maquettes": 40,
+    "cout_usd": 5.95,
+    "envoyees": 32,
+    "pretes": 17,
     "ouvertes": 0
    },
    "total": {
-    "maquettes": 120,
+    "maquettes": 156,
     "ouvertes": 0,
-    "envoyees": 107,
-    "cout_usd": 20.36
+    "envoyees": 139,
+    "cout_usd": 26.31
    }
   }
  ]
