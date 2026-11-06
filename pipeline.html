@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Le pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Le pipeline en un coup d'œil : une ligne du temps, une station par étape, colorée selon l'agent qui la fait.
+   Les détails pratiques (clés, coûts, interrupteurs) restent repliés en bas. */
+:root {
+  --bg: #f4f3f8; --panel: #ffffff; --ink: #1d1b2e; --muted: #625e78; --line: #e0dde9; --rail: #cfcadd;
+  --pro: #e9801f; --pro-soft: #fdeedd; --mq: #0f7a6f; --mq-soft: #dcf1ec; --you: #2b6fd6; --you-soft: #e2ecfb;
+  --display: "Chakra Petch", "Arial Narrow", sans-serif; --body: "IBM Plex Sans", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15141f; --panel: #1f1d2c; --ink: #f1eff7; --muted: #aaa6bf; --line: #34314a; --rail: #47435f;
+  --pro: #ffa24a; --pro-soft: #3a2a1a; --mq: #4fd1bd; --mq-soft: #173532; --you: #7aa9f5; --you-soft: #1b2a45; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #15141f; --panel: #1f1d2c; --ink: #f1eff7; --muted: #aaa6bf; --line: #34314a; --rail: #47435f;
+  --pro: #ffa24a; --pro-soft: #3a2a1a; --mq: #4fd1bd; --mq-soft: #173532; --you: #7aa9f5; --you-soft: #1b2a45; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; }
+.wrap { max-width: 1180px; margin-inline: auto; padding: 32px 16px 48px; display: flex; flex-direction: column; gap: 26px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); width: fit-content; max-width: 100%; }
+.tabs a { font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 999px; color: var(--muted); text-decoration: none; }
+.tabs a:hover, .tabs a:focus-visible { color: var(--ink); outline: none; background: var(--bg); }
+.tabs a[aria-current="page"] { background: var(--ink); color: var(--panel); }
+
+header h1 { margin: 0; font-family: var(--display); font-weight: 700; font-size: clamp(30px, 5vw, 46px); letter-spacing: 1px; line-height: 1.05; }
+header p { margin: 8px 0 0; color: var(--muted); font-size: 17px; max-width: 52ch; }
+.who { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 16px; font-size: 14px; color: var(--muted); }
+.who span { display: inline-flex; align-items: center; gap: 7px; }
+.who i { width: 12px; height: 12px; border-radius: 50%; }
+
+/* La ligne du temps */
+.line { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; position: relative; }
+.line::before { content: ''; position: absolute; left: 6%; right: 6%; top: 27px; height: 3px; border-radius: 3px;
+  background: repeating-linear-gradient(90deg, var(--rail) 0 10px, transparent 10px 16px); }
+.st { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; min-width: 0; }
+.dot { position: relative; z-index: 1; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; color: #fff;
+  background: var(--c); box-shadow: 0 0 0 6px var(--bg), 0 8px 22px color-mix(in srgb, var(--c) 40%, transparent); }
+.dot svg { width: 26px; height: 26px; }
+.when { font-size: 12px; font-weight: 600; letter-spacing: .3px; color: var(--c); background: var(--soft); padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+.card { width: 100%; flex: 1; background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--c); border-radius: 14px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 8px; }
+.card h2 { margin: 0; font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: 1.5px; color: var(--c); }
+.card p { margin: 0; font-size: 14px; color: var(--muted); }
+.tools { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-top: auto; }
+.tools span { font-size: 12px; font-weight: 500; padding: 2px 8px; border-radius: 6px; background: var(--bg); border: 1px solid var(--line); white-space: nowrap; }
+.key { font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: .5px; color: var(--ink); border-top: 1px dashed var(--line); padding-top: 8px; }
+.pro { --c: var(--pro); --soft: var(--pro-soft); }
+.mq { --c: var(--mq); --soft: var(--mq-soft); }
+.you { --c: var(--you); --soft: var(--you-soft); }
+
+@media (max-width: 980px) {
+  .line { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .line::before { left: 27px; right: auto; top: 20px; bottom: 20px; width: 3px; height: auto;
+    background: repeating-linear-gradient(180deg, var(--rail) 0 10px, transparent 10px 16px); }
+  .st { display: grid; grid-template-columns: 56px minmax(0, 1fr); align-items: start; text-align: left; gap: 0 14px; }
+  .st .dot { grid-row: 1 / 3; }
+  .st .when { justify-self: start; margin-bottom: 6px; }
+  .tools { justify-content: flex-start; }
+}
+
+/* Le socle : ce qui fait tourner l'ensemble */
+.base { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .base { grid-template-columns: minmax(0, 1fr); } }
+.base div { display: flex; gap: 12px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; min-width: 0; }
+.base svg { width: 26px; height: 26px; flex: none; color: var(--muted); }
+.base b { display: block; font-family: var(--display); font-weight: 700; letter-spacing: 1px; font-size: 14px; }
+.base span { font-size: 13px; color: var(--muted); }
+
+/* Détails repliés */
+details { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 0 16px; }
+summary { cursor: pointer; list-style: none; padding: 14px 0; font-family: var(--display); font-weight: 700; letter-spacing: 1.5px; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: '+'; font-size: 20px; color: var(--muted); }
+details[open] summary::after { content: '–'; }
+.det { padding: 0 0 16px; display: flex; flex-direction: column; gap: 14px; font-size: 14px; }
+.det h3 { margin: 0 0 6px; font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: 1.5px; color: var(--muted); }
+.det table { width: 100%; border-collapse: collapse; }
+.det td, .det th { text-align: left; vertical-align: top; padding: 6px 8px; border-top: 1px solid var(--line); }
+.det th { font-weight: 600; white-space: nowrap; }
+.det td:last-child { color: var(--muted); }
+.det code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 0 4px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips span { font-size: 13px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); }
+@media (max-width: 640px) { .det table, .det tbody, .det tr, .det td, .det th { display: block; } .det th { padding-bottom: 0; border-top: 1px solid var(--line); } .det td { border-top: 0; padding-top: 2px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="tabs" aria-label="Sections"><a href="./">Tableau de bord</a><a href="pipeline.html" aria-current="page">Le pipeline</a><a href="village.html">Le village</a></nav>
+
+  <header>
+    <h1>Le pipeline</h1>
+    <p>De Google Maps à ta boîte mail, tout seul, chaque jour ouvré.</p>
+    <div class="who"><span><i style="background:var(--pro)"></i>le Prospecteur</span><span><i style="background:var(--mq)"></i>le Maquettiste</span><span><i style="background:var(--you)"></i>toi</span></div>
+  </header>
+
+  <ol class="line" aria-label="Les étapes, dans l'ordre de la journée">
+    <li class="st pro">
+      <div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 21s-6-5.4-6-11a6 6 0 0 1 12 0c0 5.6-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg></div>
+      <span class="when">5 h</span>
+      <div class="card"><h2>TROUVER</h2><p>Les plombiers, ville par ville, et l'email sur leur site.</p>
+        <div class="tools"><span>Google Places</span></div><div class="key">160 recherches / jour</div></div>
+    </li>
+    <li class="st pro">
+      <div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="m12 3 2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg></div>
+      <span class="when">5 h</span>
+      <div class="card"><h2>NOTER</h2><p>Une capture du site, notée sur 5. On garde les sites datés.</p>
+        <div class="tools"><span>Claude</span></div><div class="key">2/5 en priorité, puis 3/5</div></div>
+    </li>
+    <li class="st mq">
+      <div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12"/></svg></div>
+      <span class="when">après le crawl</span>
+      <div class="card"><h2>DESSINER</h2><p>La maquette de son futur site, mise en ligne à son nom.</p>
+        <div class="tools"><span>Claude</span><span>Unsplash</span><span>demo.mdwagency.com</span></div><div class="key">≈ 0,15 $ / maquette</div></div>
+    </li>
+    <li class="st pro">
+      <div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 11 21 3l-6 18-3-8z"/></svg></div>
+      <span class="when">9 h · lun → ven</span>
+      <div class="card"><h2>ENVOYER</h2><p>Adresse vérifiée, accroche sur mesure, lien de la maquette. Relances à J+4 et J+10.</p>
+        <div class="tools"><span>ZeroBounce</span><span>Claude</span><span>Gmail</span></div><div class="key">80 emails / jour</div></div>
+    </li>
+    <li class="st pro">
+      <div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></div>
+      <span class="when">17 h</span>
+      <div class="card"><h2>SUIVRE</h2><p>Réponses, rebonds, maquettes ouvertes : le bilan par email et le tableau de bord.</p>
+        <div class="tools"><span>Gmail</span><span>GoatCounter</span></div><div class="key">un bilan chaque soir</div></div>
+    </li>
+    <li class="st you">
+      <div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M4 4h16v12H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg></div>
+      <span class="when">quand ça répond</span>
+      <div class="card"><h2>TOI</h2><p>Tu réponds aux intéressés et tu pars de leur maquette.</p>
+        <div class="tools"><span>Sheet « maquettes vues »</span></div><div class="key">les rendez-vous</div></div>
+    </li>
+  </ol>
+
+  <section class="base" aria-label="Ce qui fait tourner l'ensemble">
+    <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 4v16"/></svg><span><b>LA MÉMOIRE</b>un Google Sheet : chaque artisan, chaque email, chaque réponse</span></div>
+    <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M5 3 2 6M19 3l3 3"/></svg><span><b>LE RÉVEIL</b>cron-job.org lance chaque étape à l'heure pile</span></div>
+    <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3a9 9 0 0 0-2.8 17.5c.5.1.6-.2.6-.4v-1.6c-2.5.5-3-1.1-3-1.1-.4-1-1-1.3-1-1.3-.8-.6.1-.6.1-.6.9.1 1.4.9 1.4.9.8 1.4 2.1 1 2.6.8.1-.6.3-1 .6-1.2-2-.2-4.1-1-4.1-4.4 0-1 .4-1.8.9-2.4-.1-.2-.4-1.1.1-2.4 0 0 .8-.2 2.5.9a8.6 8.6 0 0 1 4.6 0c1.7-1.1 2.5-.9 2.5-.9.5 1.3.2 2.2.1 2.4.6.6.9 1.4.9 2.4 0 3.4-2.1 4.2-4.1 4.4.3.3.6.8.6 1.6v2.4c0 .2.1.5.6.4A9 9 0 0 0 12 3z"/></svg><span><b>LE MOTEUR</b>GitHub fait tourner les agents et héberge les pages</span></div>
+  </section>
+
+  <details>
+    <summary>DÉTAILS TECHNIQUES</summary>
+    <div class="det">
+      <div><h3>LES OUTILS, LEURS CLÉS ET LEUR COÛT</h3>
+        <table><tbody>
+          <tr><th>Google Places</th><td>clé <code>GOOGLE_PLACES_API_KEY</code> · crédit d'essai jusqu'au 28/12, puis 1 000 requêtes gratuites / mois · ne pas cliquer « Upgrade »</td></tr>
+          <tr><th>Claude</th><td>clé <code>ANTHROPIC_API_KEY</code> · console.anthropic.com · recharge manuelle, garder au moins 10 $</td></tr>
+          <tr><th>Unsplash</th><td>banque de photos triées (<code>templates/banque</code>), jamais d'images IA · clé <code>UNSPLASH_ACCESS_KEY</code> pour l'agrandir</td></tr>
+          <tr><th>ZeroBounce</th><td>clé <code>ZEROBOUNCE_API_KEY</code> · compte contact@mdwagency.com · crédits achetés, alerte sous 60</td></tr>
+          <tr><th>Gmail</th><td>contact@mdwagency.com, envoi sous guillaume@ · mot de passe d'application · SPF, DKIM, DMARC en place</td></tr>
+          <tr><th>GoatCounter</th><td>visites des maquettes, sans cookie · clé <code>GOATCOUNTER_API_KEY</code> (lecture seule)</td></tr>
+          <tr><th>GitHub</th><td>dépôt privé <code>agent-prospection</code> · maquettes : <code>mayeux42/demos</code> → demo.mdwagency.com · tableau de bord : <code>suivi-a5sluotoz2</code></td></tr>
+          <tr><th>cron-job.org</th><td>Crawl 5 h · Envoi 9 h · Bilan 17 h · jeton GitHub à renouveler avant le 22/10/2027</td></tr>
+        </tbody></table>
+      </div>
+      <div><h3>GARDE-FOUS</h3>
+        <div class="chips"><span>160 recherches Google / jour</span><span>80 emails / jour</span><span>adresse vérifiée avant le 1er email</span><span>pause si plus de 6 % de rebonds</span><span>jamais deux 1ers emails à la même adresse</span><span>note Google affichée dès 4,3/5 et 10 avis</span><span>sans maquette, l'email classique part</span></div>
+      </div>
+      <div><h3>COUPER OU RÉGLER</h3>
+        <div class="chips"><span>variables GitHub <code>AUTO_CRAWL</code>, <code>AUTO_ENVOI</code>, <code>AUTO_MAQUETTES</code> → <code>false</code></span><span>fichier <code>STOP</code> à la racine : plus aucun envoi</span><span>réglages : <code>config.yaml</code></span></div>
+      </div>
+    </div>
+  </details>
+</div>
+</body>
+</html>
