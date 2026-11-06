@@ -1,23 +1,23 @@
 {
- "generated_at": "2026-11-06T22:40:28+00:00",
- "jour": "2026-11-06",
+ "generated_at": "2026-11-06T23:19:42+00:00",
+ "jour": "2026-11-07",
  "agents": [
   {
    "id": "prospection",
    "nom": "Prospecteur",
    "role": "Agent de prospection",
-   "mission": "Trouve des plombiers au site daté et leur propose une maquette.",
+   "mission": "Trouve des plombiers et des restaurants au site daté et leur propose une maquette.",
    "etat": "ok",
    "alertes": [],
    "derniere_activite": "2026-11-06 10:50",
    "aujourdhui": {
-    "emails": 80,
-    "nouveaux": 76,
-    "relances": 4,
+    "emails": 0,
+    "nouveaux": 0,
+    "relances": 0,
     "reponses": 0,
     "rebonds": 0,
-    "sites_2_5": 17,
-    "requetes": 192
+    "sites_2_5": 0,
+    "requetes": 0
    },
    "total": {
     "contactes": 398,
@@ -27,9 +27,9 @@
    "par_metier": {
     "plombier": {
      "libelle": "plombiers",
-     "emails": 80,
-     "nouveaux": 76,
-     "sites_2_5": 17,
+     "emails": 0,
+     "nouveaux": 0,
+     "sites_2_5": 0,
      "contactes": 398
     }
    }
@@ -42,11 +42,11 @@
    "etat": "ok",
    "alertes": [],
    "aujourdhui": {
-    "maquettes": 40,
-    "cout_usd": 5.95,
-    "envoyees": 32,
+    "maquettes": 0,
+    "cout_usd": 0.0,
+    "envoyees": 0,
     "pretes": 17,
-    "ouvertes": 2
+    "ouvertes": 0
    },
    "total": {
     "maquettes": 156,
