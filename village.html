@@ -118,10 +118,10 @@ body.card-open .hint { opacity: 0; }
   <div class="kicker">AGENT 01 · MODULE RADAR</div>
   <h2 id="c-name">PROSPECTEUR</h2>
   <div class="state"><i class="dot" id="c-dot"></i><span id="c-state">EN VEILLE</span></div>
-  <p class="mission">Il repère les artisans dont le site a vieilli et leur propose une maquette gratuite. Chaque lot d'emails part dans sa fusée postale.</p>
+  <p class="mission">Il repère les plombiers et les restaurants dont le site a vieilli et leur propose une maquette gratuite. Chaque lot d'emails part dans sa fusée postale.</p>
   <h3>COMMENT IL TRAVAILLE</h3>
   <ol class="flow">
-    <li class="node"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 21s-6-5.4-6-11a6 6 0 0 1 12 0c0 5.6-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg></div><div><b>GOOGLE PLACES</b><span>repère les plombiers</span></div></li>
+    <li class="node"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 21s-6-5.4-6-11a6 6 0 0 1 12 0c0 5.6-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg></div><div><b>GOOGLE PLACES</b><span>repère plombiers et restos</span></div></li>
     <li class="node"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/><circle cx="12" cy="14" r="2.6"/></svg></div><div><b>NAVIGATEUR</b><span>photographie le site</span></div></li>
     <li class="node"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></svg></div><div><b>CLAUDE</b><span>note le design sur 5</span></div></li>
     <li class="node"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.4 7.8 8 9 4.6-1.2 8-4.5 8-9V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg></div><div><b>ZEROBOUNCE</b><span>vérifie l'adresse</span></div></li>
@@ -142,7 +142,7 @@ body.card-open .hint { opacity: 0; }
   <div class="kicker">AGENT 02 · ATELIER DE MAQUETTES</div>
   <h2 id="m-name">MAQUETTISTE</h2>
   <div class="state"><i class="dot" id="m-dot"></i><span id="m-state">EN VEILLE</span></div>
-  <p class="mission">Avant chaque envoi, il lit le site du plombier et dessine la maquette de son futur site. Chaque page terminée s'envole vers la fusée du Prospecteur.</p>
+  <p class="mission">Avant chaque envoi, il lit le site du prospect et dessine la maquette de son futur site. Chaque page terminée s'envole vers la fusée du Prospecteur.</p>
   <h3>COMMENT IL TRAVAILLE</h3>
   <ol class="flow">
     <li class="node"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M7 13h6M7 16h9"/></svg></div><div><b>SON SITE ACTUEL</b><span>lit toutes les pages, trouve son logo</span></div></li>
@@ -152,14 +152,14 @@ body.card-open .hint { opacity: 0; }
     <li class="node"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.7 5.6 3.7 9s-1.2 6.4-3.7 9c-2.5-2.6-3.7-5.6-3.7-9S9.5 5.6 12 3z"/></svg></div><div><b>DEMO.MDWAGENCY.COM</b><span>publie la maquette, lien dans l'email</span></div></li>
   </ol>
   <div class="side">
-    <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg><span><b>GABARIT</b>4 palettes d'artisan</span></div>
+    <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg><span><b>GABARIT</b>un par métier, plombier ou resto</span></div>
     <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg><span><b>AVANT 9 H</b>juste avant l'envoi</span></div>
   </div>
   <h3>AUJOURD'HUI</h3>
   <div class="today">
     <div><b id="m-made">—</b><span>dessinées</span></div>
     <div><b id="m-sent">—</b><span>envoyées</span></div>
-    <div><b id="m-open">—</b><span>ouvertes par un artisan</span></div>
+    <div><b id="m-open">—</b><span>ouvertes par un prospect</span></div>
   </div>
   </div>
   <p class="credit">Décor : KayKit Space Base (Kay Lousberg, CC0) · Robots : RobotExpressive (Tomás Laulhé, CC0).</p>
