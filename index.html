@@ -124,8 +124,10 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
     <div>
       <h1>Suivi prospection</h1>
       <p class="sp-sub">Mis à jour le <span id="maj-heure">—</span> · mises à jour vers 9 h (lundi au vendredi) et 17 h</p>
+      <p class="sp-sub" id="vue-note" hidden>Google Places, ZeroBounce et le crédit d'essai sont communs aux métiers : ils ne comptent que dans « Tout ».</p>
     </div>
     <div class="sp-ctls">
+      <div class="seg" id="seg-m" role="group" aria-label="Métier" hidden></div>
       <div class="seg" id="seg-w" role="group" aria-label="Période">
         <button type="button" data-w="7j" aria-pressed="false">7 jours</button>
         <button type="button" data-w="30j" aria-pressed="false">30 jours</button>
@@ -212,10 +214,24 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
 // Données : un seul fichier data.json (uniquement des totaux), mis à jour automatiquement par l'agent.
 const dash = (() => {
   let data = null, status = 'loading'; const subs = [];
+  // Vue choisie : « tout » (premier niveau de data.json) ou un métier (data.metiers[id]) ; mémorisée sur ce navigateur.
+  let vue = 'tout';
+  try { vue = localStorage.getItem('vue-metier') || 'tout'; } catch (e) { /* stockage indisponible */ }
   const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const pick = (id) => {
+    const m = vue !== 'tout' && id !== 'kpis' && data.metiers && data.metiers[vue];
+    return m ? m[id] : data[id];
+  };
   return {
-    data: (id) => ({ status: data ? 'ok' : status, data: data ? data[id] : [] }),
+    data: (id) => ({ status: data ? 'ok' : status, data: data ? pick(id) : [] }),
     onData: (fn) => { subs.push(fn); fn(); },
+    metiers: () => (data && data.metiers) || {},
+    get vue() { return data && data.metiers && data.metiers[vue] ? vue : 'tout'; },
+    setVue(v) {
+      vue = v;
+      try { localStorage.setItem('vue-metier', v); } catch (e) { /* stockage indisponible */ }
+      subs.forEach((f) => f());
+    },
     get colors() { return [0, 1, 2, 3, 4, 5, 6, 7].map((i) => css('--c' + i)); },
     generatedAt: () => data && data.generated_at,
     load() {
@@ -225,6 +241,24 @@ const dash = (() => {
       let timer; window.addEventListener('resize', () => { clearTimeout(timer); timer = setTimeout(() => subs.forEach((f) => f()), 150); });
     },
   };
+})();
+</script>
+<script>
+// Sélecteur de métier : Tout · Plombiers · Restos (un bouton par métier présent dans data.json).
+(() => {
+  const seg = document.getElementById('seg-m'), note = document.getElementById('vue-note');
+  dash.onData(() => {
+    const metiers = dash.metiers(), ids = Object.keys(metiers);
+    seg.hidden = ids.length === 0;
+    note.hidden = dash.vue === 'tout';
+    const items = [['tout', 'Tout'], ...ids.map((id) => [id, metiers[id].libelle.charAt(0).toUpperCase() + metiers[id].libelle.slice(1)])];
+    if (seg.dataset.ids !== ids.join()) {
+      seg.dataset.ids = ids.join();
+      seg.innerHTML = items.map(([id, label]) => `<button type="button" data-m="${id}">${label}</button>`).join('');
+      seg.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => dash.setVue(b.dataset.m)));
+    }
+    seg.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.m === dash.vue)));
+  });
 })();
 </script>
 <script>

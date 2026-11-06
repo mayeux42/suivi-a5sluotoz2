@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-06T21:26:52+00:00",
+ "generated_at": "2026-11-06T22:40:28+00:00",
  "jour": "2026-11-06",
  "agents": [
   {
@@ -23,6 +23,15 @@
     "contactes": 398,
     "emails": 705,
     "reponses": 3
+   },
+   "par_metier": {
+    "plombier": {
+     "libelle": "plombiers",
+     "emails": 80,
+     "nouveaux": 76,
+     "sites_2_5": 17,
+     "contactes": 398
+    }
    }
   },
   {
