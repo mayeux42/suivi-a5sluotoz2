@@ -80,6 +80,28 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
 .mile { border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 6px 12px; display: flex; flex-direction: column; gap: 1px; min-width: 96px; }
 .mile .n { font-family: var(--font-anthropic-serif); font-size: 1.35rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .mile .w { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+/* Section Maquettes : entonnoir à gauche, comparaison et moment d'ouverture à droite */
+.mq-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: var(--cds-gap-md) 32px; }
+@media (max-width: 960px) { .mq-grid { grid-template-columns: minmax(0, 1fr); } }
+.mq-h { margin: 0 0 8px; font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); letter-spacing: .3px; }
+.mq-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.funnel { display: grid; grid-template-columns: minmax(92px, auto) minmax(0, 1fr) 92px; align-items: center; gap: 7px 10px; }
+.funnel > :only-child { grid-column: 1 / -1; }
+.funnel .lab { font-size: 13px; white-space: nowrap; }
+.funnel .lab.sub { color: var(--color-fg-muted); padding-left: 10px; }
+.funnel .track { height: 18px; border-radius: 4px; background: var(--cds-chart-grid); overflow: hidden; }
+.funnel .fill { height: 100%; border-radius: 4px; min-width: 2px; }
+.funnel .val { font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.funnel .val b { font-weight: var(--cds-font-weight-medium); }
+.funnel .val span { color: var(--color-fg-muted); margin-left: 6px; }
+.vs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.vs .tile { border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 8px 12px; min-width: 0; }
+.vs .who { display: flex; align-items: center; gap: 6px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.vs .who i { width: 9px; height: 9px; border-radius: 2px; flex: none; }
+.vs .n { font-family: var(--font-anthropic-serif); font-size: 1.6rem; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.vs .w { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.badge { margin: 8px 0 0; font-size: var(--cds-font-size-caption); line-height: 1.45; padding: 6px 10px; border-radius: var(--cds-radius); background: var(--cds-chart-grid); }
+.badge b { font-weight: var(--cds-font-weight-medium); }
 .note { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.45; }
 [hidden] { display: none !important; } /* les cartes et blocs en flex ignorent sinon l'attribut hidden */
 [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
@@ -153,15 +175,23 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
     </div>
   </section>
 
+  <section class="card" id="mq-card">
+    <div class="card-h"><h2>Maquettes</h2><div class="legend" id="mq-legend">prospects dont le 1er email est parti sur la période, rebonds exclus</div></div>
+    <div class="mq-grid">
+      <div class="mq-col">
+        <div><h3 class="mq-h">DU CLIC À LA RÉPONSE · emails avec maquette</h3><div class="funnel" id="mq-funnel" data-source="maquettes"></div></div>
+      </div>
+      <div class="mq-col">
+        <div><h3 class="mq-h">AVEC OU SANS MAQUETTE · taux de réponse</h3><div class="vs" id="mq-vs"></div><p class="badge" id="mq-badge"></p></div>
+        <div><h3 class="mq-h">QUAND ILS OUVRENT · 1re visite de la maquette</h3><div class="funnel" id="mq-when"></div></div>
+      </div>
+    </div>
+    <p class="note">Ouverte : il a cliqué sur le lien. A défilé : il a dépassé le premier écran. Parcourue : il est arrivé aux avis clients (60 % de la page). Visites mesurées sans cookie depuis le 5 novembre au soir : les clics des premiers jours sur les maquettes envoyées les 3 et 4 novembre n'ont pas été vus. Tes propres visites ne sont pas comptées.</p>
+  </section>
+
   <section class="card" id="parcours">
     <div class="card-h"><h2>Parcours des prospects</h2><div class="legend">total depuis le début, quelle que soit la période</div></div>
     <div class="sk" id="sankey" data-source="flux"></div>
-  </section>
-
-  <section class="card" id="ab-card" hidden>
-    <div class="card-h"><h2>Maquettes : effet sur les réponses</h2><div class="legend">taux de réponse, rebonds exclus</div></div>
-    <div class="miles" id="ab"></div>
-    <p class="note">Depuis le 3 novembre, chaque nouveau prospect reçoit le lien de sa maquette dès le premier email. Comparaison avec les prospects contactés avant, par l'email classique. Compter 2 à 3 semaines et une centaine de prospects avant de conclure.</p>
   </section>
 
   <section class="card" id="projection-card">
@@ -371,6 +401,70 @@ const dash = (() => {
     if (last) el.append(box(F.int(last.emails), `emails envoyés au ${dShort.format(new Date(last.jour))}`));
   }
 
+  // Une ligne de barre : libellé, barre proportionnelle, valeur et pourcentage.
+  function barRows(el, rows, max) {
+    el.replaceChildren();
+    rows.forEach((r) => {
+      const lab = document.createElement('div'); lab.className = 'lab' + (r.sub ? ' sub' : ''); lab.textContent = r.label;
+      const track = document.createElement('div'); track.className = 'track';
+      const fill = document.createElement('div'); fill.className = 'fill'; fill.style.background = r.color;
+      fill.style.width = (max ? Math.max(r.value ? 1 : 0, (r.value / max) * 100) : 0) + '%'; track.append(fill);
+      track.title = r.title || '';
+      const val = document.createElement('div'); val.className = 'val';
+      const b = document.createElement('b'); b.textContent = F.int(r.value); val.append(b);
+      if (r.pct !== undefined) { const sp = document.createElement('span'); sp.textContent = F.pct(r.pct); val.append(sp); }
+      el.append(lab, track, val);
+    });
+  }
+
+  function renderMockups(rows, c) {
+    const t = {}; rows.forEach((r) => Object.keys(r).forEach((k) => { if (typeof r[k] === 'number') t[k] = (t[k] || 0) + r[k]; }));
+    const n = t.envoyes_mq || 0, of = (v) => (n ? v / n : 0);
+    const mq = c[4], ok = c[2];
+    if (!n) { line($('#mq-funnel'), 'Aucun email avec maquette sur cette période.', true); }
+    else barRows($('#mq-funnel'), [
+      { label: 'Envoyés', value: n, color: mq },
+      { label: 'Ouvertes', value: t.ouvertes || 0, pct: of(t.ouvertes || 0), color: mq, title: 'Il a cliqué sur le lien de sa maquette' },
+      { label: 'Ont défilé', value: t.defilees || 0, pct: of(t.defilees || 0), color: mq, title: 'Il a dépassé le premier écran' },
+      { label: 'Parcourues', value: t.parcourues || 0, pct: of(t.parcourues || 0), color: mq, title: 'Il est arrivé aux avis clients' },
+      { label: 'Réponses', value: t.reponses_mq || 0, pct: of(t.reponses_mq || 0), color: ok },
+      { label: 'dont positives', sub: true, value: t.positives_mq || 0, pct: of(t.positives_mq || 0), color: ok },
+    ], n);
+
+    // Avec ou sans maquette : taux de réponse de chaque groupe, et ce qu'on peut en conclure.
+    const cl = t.envoyes_cl || 0;
+    const rate = (r, d) => (d ? r / d : 0);
+    const tile = (who, color, r, d, p) => {
+      const el = document.createElement('div'); el.className = 'tile';
+      const w = document.createElement('div'); w.className = 'who'; const sw = document.createElement('i'); sw.style.background = color; w.append(sw, who);
+      const big = document.createElement('div'); big.className = 'n'; big.textContent = d ? F.pct(rate(r, d)) : '—';
+      const sub = document.createElement('div'); sub.className = 'w'; sub.textContent = `${F.int(r)} réponse${r > 1 ? 's' : ''} sur ${F.int(d)} · ${F.int(p)} positive${p > 1 ? 's' : ''}`;
+      el.append(w, big, sub); return el;
+    };
+    $('#mq-vs').replaceChildren(tile('Avec maquette', mq, t.reponses_mq || 0, n, t.positives_mq || 0),
+      tile('Email classique', c[0], t.reponses_cl || 0, cl, t.positives_cl || 0));
+    const badge = $('#mq-badge'); badge.replaceChildren();
+    const strong = (txt) => { const b = document.createElement('b'); b.textContent = txt; return b; };
+    if (n < 300 || cl < 100) {
+      badge.append(strong('Trop tôt pour conclure. '), `${F.int(n)} envois avec maquette sur la période : il en faut environ 300 pour qu'un écart de taux de réponse veuille dire quelque chose.`);
+    } else {
+      // Test de deux proportions : |z| ≥ 1,96 = écart net (95 %).
+      const p1 = rate(t.reponses_mq, n), p2 = rate(t.reponses_cl, cl), p = (t.reponses_mq + t.reponses_cl) / (n + cl);
+      const z = p > 0 && p < 1 ? (p1 - p2) / Math.sqrt(p * (1 - p) * (1 / n + 1 / cl)) : 0;
+      if (Math.abs(z) >= 1.96) badge.append(strong(p1 > p2 ? 'Écart net en faveur de la maquette.' : 'Écart net en faveur de l\'email classique.'));
+      else badge.append(strong('Tendance, pas encore certaine. '), 'L\'écart peut encore venir du hasard.');
+    }
+
+    // Quand ils ouvrent : 1re visite après le 1er email (J0-J3), la relance 1 (J4-J9) ou la relance 2 (J10 et après).
+    const o = t.ouvertes || 0;
+    if (!o) line($('#mq-when'), 'Pas encore de visite mesurée sur cette période.', true);
+    else barRows($('#mq-when'), [
+      { label: 'après le 1er email', value: t.ouv_j0 || 0, pct: (t.ouv_j0 || 0) / o, color: mq },
+      { label: 'après la relance 1', value: t.ouv_r1 || 0, pct: (t.ouv_r1 || 0) / o, color: mq },
+      { label: 'après la relance 2', value: t.ouv_r2 || 0, pct: (t.ouv_r2 || 0) / o, color: mq },
+    ], o);
+  }
+
   function render() {
     const wins = rowsOf('fenetres');
     const k = (rowsOf('kpis') || [])[0];
@@ -473,19 +567,10 @@ const dash = (() => {
     const fl = rowsOf('flux');
     if (fl) sankey($('#sankey'), fl); else if (failed('flux')) line($('#sankey'), 'Échec du chargement', true);
 
-    const ab = (rowsOf('ab') || []).filter((r) => r.contactes > 0);
-    // La carte apparaît dès que des emails avec maquette sont partis.
-    $('#ab-card').hidden = !ab.some((r) => r.variante === 'Avec maquette');
-    if (ab.length) {
-      $('#ab').replaceChildren(...ab.map((r) => {
-        const d = document.createElement('div'); d.className = 'mile';
-        const n = document.createElement('span'); n.className = 'n'; n.textContent = F.pct(r.taux);
-        const w = document.createElement('span'); w.className = 'w';
-        w.textContent = `${r.variante} : ${F.int(r.reponses)} réponses sur ${F.int(r.contactes)} (${F.int(r.positives)} positives)`
-          + (r.variante === 'Avec maquette' && r.contactes ? ` · maquettes : ${F.int(r.ouvertes || 0)} ouvertes (${F.pct((r.ouvertes || 0) / r.contactes)}), ${F.int(r.defilees || 0)} ont défilé, ${F.int(r.parcourues || 0)} parcourues` : '');
-        d.append(n, w); return d;
-      }));
-    }
+    // Maquettes : somme des jours de 1er envoi de la période.
+    const mqRows = rowsOf('maquettes');
+    if (mqRows) renderMockups(mqRows.filter((r) => r.debut >= from && r.debut <= to), c);
+    else if (failed('maquettes')) line($('#mq-funnel'), 'Échec du chargement', true);
 
     const pr = rowsOf('projection'), jl = rowsOf('jalons') || [];
     document.querySelectorAll('#seg-proj button').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.v === projView)));
