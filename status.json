@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-06T15:25:49+00:00",
+ "generated_at": "2026-11-06T16:01:50+00:00",
  "jour": "2026-11-06",
  "agents": [
   {
@@ -37,11 +37,11 @@
     "cout_usd": 5.95,
     "envoyees": 32,
     "pretes": 17,
-    "ouvertes": 0
+    "ouvertes": 1
    },
    "total": {
     "maquettes": 156,
-    "ouvertes": 0,
+    "ouvertes": 2,
     "envoyees": 139,
     "cout_usd": 26.31
    }
