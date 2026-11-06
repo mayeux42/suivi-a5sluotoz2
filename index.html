@@ -54,7 +54,11 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
 .kpi .lbl { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
 .kpi .big { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: 2.1rem; line-height: 1.05; font-variant-numeric: tabular-nums; }
 .kpi.small .big { font-size: 1.4rem; }
-.kpi.boxed { border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 6px 10px; margin-left: auto; }
+.kpi.boxed { border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 4px 8px; margin-left: auto; }
+.kpi.boxed .big { font-size: 1.05rem; }
+.kpi.boxed .lbl, .kpi.boxed .sub { font-size: 11px; }
+#envois-card .kpis { flex-wrap: nowrap; gap: 6px 20px; }
+@media (max-width: 520px) { #envois-card .kpis { flex-wrap: wrap; } }
 .kpi .sub b { color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
 .kpi .sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-variant-numeric: tabular-nums; }
 .legend { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
@@ -140,7 +144,7 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
       <div class="kpis">
         <div class="kpi"><div class="lbl">Envoyés</div><div class="big" data-source="fenetres" data-where="fenetre=tout" data-field="emails" data-fmt="int">—</div><div class="sub"><span data-source="fenetres" data-where="fenetre=tout" data-field="premiers" data-fmt="int">—</span> nouveaux · <span data-source="fenetres" data-where="fenetre=tout" data-field="relances" data-fmt="int">—</span> relances</div><div class="sub">dont <span data-source="fenetres" data-where="fenetre=tout" data-field="premiers_maquette" data-fmt="int">—</span> nouveaux avec maquette</div></div>
         <div class="kpi"><div class="lbl">Réponses</div><div class="big" data-source="fenetres" data-where="fenetre=tout" data-field="reponses" data-fmt="int">—</div><div class="sub">de prospects</div></div>
-        <div class="kpi small boxed"><div class="lbl">Rebonds</div><div class="big" data-source="fenetres" data-where="fenetre=tout" data-field="rebonds" data-fmt="int">—</div><div class="sub"><b data-source="fenetres" data-where="fenetre=tout" data-field="taux_nouveaux" data-fmt="pct">—</b> des nouveaux</div><div class="sub"><b data-source="fenetres" data-where="fenetre=tout" data-field="taux_total" data-fmt="pct">—</b> de tous les emails</div></div>
+        <div class="kpi small boxed"><div class="lbl">Rebonds</div><div class="big" data-source="fenetres" data-where="fenetre=tout" data-field="rebonds" data-fmt="int">—</div><div class="sub"><b data-source="fenetres" data-where="fenetre=tout" data-field="taux_nouveaux" data-fmt="pct">—</b> des nouveaux</div><div class="sub"><b data-source="fenetres" data-where="fenetre=tout" data-field="taux_total" data-fmt="pct">—</b> du total</div></div>
       </div>
       <div class="chart" id="envois-chart" data-source="envois"></div>
     </div>
