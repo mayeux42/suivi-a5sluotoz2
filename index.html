@@ -124,7 +124,6 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
     <div>
       <h1>Suivi prospection</h1>
       <p class="sp-sub">Mis à jour le <span id="maj-heure">—</span> · mises à jour vers 9 h (lundi au vendredi) et 17 h</p>
-      <p class="sp-sub" id="vue-note" hidden>Google Places, ZeroBounce et le crédit d'essai sont communs aux métiers : ils ne comptent que dans « Tout ».</p>
     </div>
     <div class="sp-ctls">
       <div class="seg" id="seg-m" role="group" aria-label="Métier" hidden></div>
@@ -171,6 +170,8 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
       <div class="kpis">
         <div class="kpi"><div class="lbl" id="dep-lbl">Total sur la période</div><div class="big" id="dep-total">—</div><div class="sub" id="dep-detail">—</div></div>
       </div>
+      <!-- Vue d'un métier : la note reste dans la carte qu'elle concerne (dans l'en-tête, elle décalait les boutons). -->
+      <p class="note" id="vue-note" hidden>Vue d'un métier : seulement Claude. Google Places et ZeroBounce sont communs, ils ne comptent que dans « Tout ».</p>
       <div class="chart" id="couts-chart" data-source="couts"></div>
       <div class="gbox" id="zb-box" hidden>
         <div class="gline"><span>Crédits restants</span><span><b id="zb-credits">—</b></span></div>
