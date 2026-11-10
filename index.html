@@ -461,7 +461,7 @@ const dash = (() => {
 
     // Sankey : emails envoyés depuis le suivi des visites -> niveau atteint -> réponse.
     const levels = [['non', 'Pas ouverte'], ['ouv', 'Ouverte, quittée vite'], ['def', 'A défilé'], ['parc', 'Parcourue']];
-    const outs = [['sans', 'Sans réponse'], ['neg', 'Réponse négative'], ['pos', 'Positive / à lire']];
+    const outs = [['sans', 'Sans réponse'], ['neg', 'Réponse négative'], ['ref', 'En réflexion'], ['pos', 'Positive / à lire']];
     // Emails avec maquette -> suivis (depuis le 6 nov.) ou non suivis -> niveau atteint -> réponse.
     const nt = tr.envoyes_mq || 0, flows = [];
     if (n - nt > 0) flows.push({ source: 'Envoyés', col_source: 0, cible: 'Non suivis', col_cible: 1, valeur: n - nt });
@@ -477,15 +477,15 @@ const dash = (() => {
     // Avec ou sans maquette : taux de réponse de chaque groupe, et ce qu'on peut en conclure.
     const cl = t.envoyes_cl || 0;
     const rate = (r, d) => (d ? r / d : 0);
-    const tile = (who, color, r, d, p) => {
+    const tile = (who, color, r, d, p, q) => {
       const el = document.createElement('div'); el.className = 'tile';
       const w = document.createElement('div'); w.className = 'who'; const sw = document.createElement('i'); sw.style.background = color; w.append(sw, who);
       const big = document.createElement('div'); big.className = 'n'; big.textContent = d ? F.pct(rate(r, d)) : '—';
-      const sub = document.createElement('div'); sub.className = 'w'; sub.textContent = `${F.int(r)} réponse${r > 1 ? 's' : ''} sur ${F.int(d)} · ${F.int(p)} positive${p > 1 ? 's' : ''}`;
+      const sub = document.createElement('div'); sub.className = 'w'; sub.textContent = `${F.int(r)} réponse${r > 1 ? 's' : ''} sur ${F.int(d)} · ${F.int(p)} positive${p > 1 ? 's' : ''}${q ? ` · ${F.int(q)} en réflexion` : ''}`;
       el.append(w, big, sub); return el;
     };
-    $('#mq-vs').replaceChildren(tile('Avec maquette', mq, t.reponses_mq || 0, n, t.positives_mq || 0),
-      tile('Email classique', c[0], t.reponses_cl || 0, cl, t.positives_cl || 0));
+    $('#mq-vs').replaceChildren(tile('Avec maquette', mq, t.reponses_mq || 0, n, t.positives_mq || 0, t.reflexion_mq || 0),
+      tile('Email classique', c[0], t.reponses_cl || 0, cl, t.positives_cl || 0, t.reflexion_cl || 0));
 
     // Quand ils ouvrent : 1re visite après le 1er email (J0-J3), la relance 1 (J4-J9) ou la relance 2 (J10 et après).
     const o = tr.ouvertes || 0;

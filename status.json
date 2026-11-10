@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-10T16:03:27+00:00",
+ "generated_at": "2026-11-10T20:15:04+00:00",
  "jour": "2026-11-10",
  "agents": [
   {
@@ -14,7 +14,7 @@
     "emails": 80,
     "nouveaux": 20,
     "relances": 60,
-    "reponses": 1,
+    "reponses": 2,
     "rebonds": 0,
     "sites_2_5": 8,
     "requetes": 200
@@ -22,7 +22,7 @@
    "total": {
     "contactes": 438,
     "emails": 865,
-    "reponses": 4
+    "reponses": 5
    },
    "par_metier": {
     "plombier": {
@@ -53,11 +53,11 @@
     "cout_usd": 3.78,
     "envoyees": 13,
     "pretes": 33,
-    "ouvertes": 6
+    "ouvertes": 7
    },
    "total": {
     "maquettes": 199,
-    "ouvertes": 12,
+    "ouvertes": 13,
     "envoyees": 166,
     "cout_usd": 33.8
    }
