@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-10T08:40:54+00:00",
+ "generated_at": "2026-11-10T16:03:27+00:00",
  "jour": "2026-11-10",
  "agents": [
   {
@@ -17,7 +17,7 @@
     "reponses": 1,
     "rebonds": 0,
     "sites_2_5": 8,
-    "requetes": 177
+    "requetes": 200
    },
    "total": {
     "contactes": 438,
@@ -53,11 +53,11 @@
     "cout_usd": 3.78,
     "envoyees": 13,
     "pretes": 33,
-    "ouvertes": 0
+    "ouvertes": 6
    },
    "total": {
     "maquettes": 199,
-    "ouvertes": 6,
+    "ouvertes": 12,
     "envoyees": 166,
     "cout_usd": 33.8
    }
