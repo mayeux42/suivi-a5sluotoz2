@@ -191,6 +191,7 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
     </div>
     <div class="mq-grid">
       <div><h3 class="mq-h">QUAND ILS OUVRENT · 1re visite de la maquette</h3><div class="funnel" id="mq-when"></div></div>
+      <div><h3 class="mq-h">CAPTURE DANS LA RELANCE · taux d'ouverture (Gmail, Yahoo, iCloud)</h3><div class="funnel" id="mq-cap"></div></div>
     </div>
     <p class="note">Ouverte : clic sur le lien · A défilé : premier écran dépassé · Parcourue : arrivé aux avis. Taux d'ouverture calculé sur les prospects relancés au moins une fois : les plus récents n'ont pas encore eu le temps d'ouvrir. Visites comptées depuis le 5 nov. au soir.</p>
   </section>
@@ -479,6 +480,25 @@ const dash = (() => {
     else sankey($('#mq-sankey'), flows, ['Emails', 'Maquette', 'Réponse']);
 
     // Avec ou sans maquette : taux de réponse de chaque groupe, et ce qu'on peut en conclure.
+    // Capture de la maquette dans la relance : relancés avec capture contre relancés sans, mêmes messageries.
+    const capRows = [['Avec capture', t.cap_ouv || 0, t.cap_rel || 0], ['Sans capture', t.img_ouv || 0, t.img_rel || 0]];
+    const capMax = Math.max(...capRows.map(([, a, b]) => (b ? a / b : 0)), 0.01);
+    const capEl = $('#mq-cap'); capEl.replaceChildren();
+    capRows.forEach(([lab, a, b]) => {
+      const l1 = document.createElement('div'); l1.className = 'lab'; l1.textContent = lab;
+      const tr = document.createElement('div'); tr.className = 'track';
+      const fi = document.createElement('div'); fi.className = 'fill'; fi.style.background = lab === 'Avec capture' ? mq : c[7];
+      fi.style.width = (b ? (a / b) / capMax * 100 : 0) + '%'; tr.append(fi);
+      const v = document.createElement('div'); v.className = 'val';
+      const bb = document.createElement('b'); bb.textContent = b ? F.pct(a / b) : '—';
+      const sp = document.createElement('span'); sp.textContent = `${F.int(a)}/${F.int(b)}`; v.append(bb, sp);
+      capEl.append(l1, tr, v);
+    });
+    if (!(t.cap_rel || 0)) {
+      const note = document.createElement('div'); note.className = 'lab sub'; note.style.gridColumn = '1 / -1';
+      note.textContent = 'Pas encore de relance avec capture sur la période (depuis le 11 novembre).'; capEl.append(note);
+    }
+
     // Quand ils ouvrent : 1re visite après le 1er email (J0-J3), la relance 1 (J4-J9) ou la relance 2 (J10 et après).
     const o = t.ouvertes || 0;
     if (!o) line($('#mq-when'), 'Pas encore de visite mesurée sur cette période.', true);
