@@ -102,6 +102,7 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
 .funnel .val b { font-weight: var(--cds-font-weight-medium); }
 .funnel .val span { color: var(--color-fg-muted); margin-left: 6px; }
 .vs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.vs.one { grid-template-columns: minmax(0, 1fr); }
 .vs .tile { border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 8px 12px; min-width: 0; }
 .vs .who { display: flex; align-items: center; gap: 6px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
 .vs .who i { width: 9px; height: 9px; border-radius: 2px; flex: none; }
@@ -196,7 +197,7 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
       <div class="sk" id="mq-sankey" data-source="maquettes"></div>
     </div>
     <div class="mq-grid">
-      <div><h3 class="mq-h">AVEC OU SANS MAQUETTE · taux de réponse</h3><div class="vs" id="mq-vs"></div></div>
+      <div><h3 class="mq-h">RÉPONSES INTÉRESSÉES · emails avec maquette</h3><div class="vs one" id="mq-vs"></div></div>
       <div><h3 class="mq-h">QUAND ILS OUVRENT · 1re visite de la maquette</h3><div class="funnel" id="mq-when"></div></div>
     </div>
     <p class="note">Ouverte : clic sur le lien · A défilé : premier écran dépassé · Parcourue : arrivé aux avis. Taux d'ouverture calculé sur les prospects relancés au moins une fois : les plus récents n'ont pas encore eu le temps d'ouvrir. Visites comptées depuis le 5 nov. au soir.</p>
@@ -486,17 +487,16 @@ const dash = (() => {
     else sankey($('#mq-sankey'), flows, ['Emails', 'Maquette', 'Réponse']);
 
     // Avec ou sans maquette : taux de réponse de chaque groupe, et ce qu'on peut en conclure.
-    const cl = t.envoyes_cl || 0;
-    const rate = (r, d) => (d ? r / d : 0);
-    const tile = (who, color, r, d, p, q) => {
-      const el = document.createElement('div'); el.className = 'tile';
-      const w = document.createElement('div'); w.className = 'who'; const sw = document.createElement('i'); sw.style.background = color; w.append(sw, who);
-      const big = document.createElement('div'); big.className = 'n'; big.textContent = d ? F.pct(rate(r, d)) : '—';
-      const sub = document.createElement('div'); sub.className = 'w'; sub.textContent = `${F.int(r)} réponse${r > 1 ? 's' : ''} sur ${F.int(d)} · ${F.int(p)} positive${p > 1 ? 's' : ''}${q ? ` · ${F.int(q)} en réflexion` : ''}`;
-      el.append(w, big, sub); return el;
-    };
-    $('#mq-vs').replaceChildren(tile('Avec maquette', mq, t.reponses_mq || 0, n, t.positives_mq || 0, t.reflexion_mq || 0),
-      tile('Email classique', c[0], t.reponses_cl || 0, cl, t.positives_cl || 0, t.reflexion_cl || 0));
+    // Réponses intéressées : positives, en réflexion et questions (les « non merci » à part, en petit).
+    const pos = t.positives_mq || 0, ref = t.reflexion_mq || 0, q = t.alire_mq || 0, neg = t.negatives_mq || 0;
+    const hot = pos + ref + q;
+    const el = document.createElement('div'); el.className = 'tile';
+    const big = document.createElement('div'); big.className = 'n'; big.textContent = F.int(hot);
+    const w1 = document.createElement('div'); w1.className = 'w';
+    w1.textContent = `${F.int(pos)} positive${pos > 1 ? 's' : ''} · ${F.int(ref)} en réflexion · ${F.int(q)} question${q > 1 ? 's' : ''} · sur ${F.int(n)} emails avec maquette`;
+    const w2 = document.createElement('div'); w2.className = 'w'; w2.textContent = `et ${F.int(neg)} réponse${neg > 1 ? 's' : ''} négative${neg > 1 ? 's' : ''}`;
+    el.append(big, w1, w2);
+    $('#mq-vs').replaceChildren(el);
 
     // Quand ils ouvrent : 1re visite après le 1er email (J0-J3), la relance 1 (J4-J9) ou la relance 2 (J10 et après).
     const o = t.ouvertes || 0;
