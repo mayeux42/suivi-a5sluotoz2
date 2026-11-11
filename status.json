@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-11T08:32:47+00:00",
+ "generated_at": "2026-11-11T08:40:55+00:00",
  "jour": "2026-11-11",
  "agents": [
   {
@@ -9,35 +9,35 @@
    "mission": "Trouve des plombiers et des restaurants au site daté et leur propose une maquette.",
    "etat": "ok",
    "alertes": [],
-   "derniere_activite": "2026-11-11 09:32",
+   "derniere_activite": "2026-11-11 09:39",
    "aujourdhui": {
-    "emails": 64,
-    "nouveaux": 15,
-    "relances": 49,
+    "emails": 80,
+    "nouveaux": 20,
+    "relances": 60,
     "reponses": 0,
     "rebonds": 0,
     "sites_2_5": 10,
     "requetes": 178
    },
    "total": {
-    "contactes": 453,
-    "emails": 929,
+    "contactes": 458,
+    "emails": 945,
     "reponses": 5
    },
    "par_metier": {
     "plombier": {
      "libelle": "plombiers",
-     "emails": 58,
-     "nouveaux": 9,
+     "emails": 71,
+     "nouveaux": 11,
      "sites_2_5": 8,
-     "contactes": 431
+     "contactes": 433
     },
     "restaurant": {
      "libelle": "restos",
-     "emails": 6,
-     "nouveaux": 6,
+     "emails": 9,
+     "nouveaux": 9,
      "sites_2_5": 2,
-     "contactes": 22
+     "contactes": 25
     }
    }
   },
@@ -51,14 +51,14 @@
    "aujourdhui": {
     "maquettes": 22,
     "cout_usd": 3.68,
-    "envoyees": 13,
-    "pretes": 42,
+    "envoyees": 17,
+    "pretes": 38,
     "ouvertes": 0
    },
    "total": {
     "maquettes": 221,
     "ouvertes": 13,
-    "envoyees": 179,
+    "envoyees": 183,
     "cout_usd": 37.48
    }
   }
