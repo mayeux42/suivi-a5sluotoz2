@@ -88,6 +88,9 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
 .mq-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--cds-gap-md) 32px; }
 @media (max-width: 960px) { .mq-grid { grid-template-columns: minmax(0, 1fr); } }
 .mq-h { margin: 0 0 8px; font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); letter-spacing: .3px; }
+.mq-rate { margin: 2px 0 10px; font-size: 13px; color: var(--color-fg-muted); display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.mq-rate .big { font-family: var(--font-anthropic-serif); font-size: 2.1rem; line-height: 1.05; color: var(--color-fg); font-variant-numeric: tabular-nums; }
+.mq-rate .lbl { font-size: 14px; color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
 .mq-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .funnel { display: grid; grid-template-columns: minmax(92px, auto) minmax(0, 1fr) 92px; align-items: center; gap: 7px 10px; }
 .funnel > :only-child { grid-column: 1 / -1; }
@@ -180,22 +183,23 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
     </div>
   </section>
 
+  <section class="card" id="parcours">
+    <div class="card-h"><h2>Parcours des prospects</h2><div class="legend">total depuis le début, quelle que soit la période</div></div>
+    <div class="sk" id="sankey" data-source="flux"></div>
+  </section>
+
   <section class="card" id="mq-card">
     <div class="card-h"><h2>Maquettes</h2><div class="legend" id="mq-legend">1er email sur la période, rebonds exclus</div></div>
     <div>
       <h3 class="mq-h">DU CLIC À LA RÉPONSE · emails avec maquette</h3>
+      <p class="mq-rate" id="mq-rate"></p>
       <div class="sk" id="mq-sankey" data-source="maquettes"></div>
     </div>
     <div class="mq-grid">
       <div><h3 class="mq-h">AVEC OU SANS MAQUETTE · taux de réponse</h3><div class="vs" id="mq-vs"></div></div>
       <div><h3 class="mq-h">QUAND ILS OUVRENT · 1re visite de la maquette</h3><div class="funnel" id="mq-when"></div></div>
     </div>
-    <p class="note">Ouverte : clic sur le lien · A défilé : premier écran dépassé · Parcourue : arrivé aux avis. Visites suivies depuis le 6 nov.</p>
-  </section>
-
-  <section class="card" id="parcours">
-    <div class="card-h"><h2>Parcours des prospects</h2><div class="legend">total depuis le début, quelle que soit la période</div></div>
-    <div class="sk" id="sankey" data-source="flux"></div>
+    <p class="note">Ouverte : clic sur le lien · A défilé : premier écran dépassé · Parcourue : arrivé aux avis. Taux d'ouverture calculé sur les prospects relancés au moins une fois : les plus récents n'ont pas encore eu le temps d'ouvrir. Visites comptées depuis le 5 nov. au soir.</p>
   </section>
 
   <section class="card" id="projection-card">
@@ -453,26 +457,33 @@ const dash = (() => {
     });
   }
 
-  const TRACKED_FROM = '2026-11-06'; // compteur de visites en place le 5 novembre au soir
   function renderMockups(rows, c) {
     const sumOf = (rs) => { const o = {}; rs.forEach((r) => Object.keys(r).forEach((k) => { if (typeof r[k] === 'number') o[k] = (o[k] || 0) + r[k]; })); return o; };
-    const t = sumOf(rows), tr = sumOf(rows.filter((r) => r.debut >= TRACKED_FROM));
+    const t = sumOf(rows);
     const n = t.envoyes_mq || 0, mq = c[4];
 
     // Sankey : emails envoyés depuis le suivi des visites -> niveau atteint -> réponse.
     const levels = [['non', 'Pas ouverte'], ['ouv', 'Ouverte, quittée vite'], ['def', 'A défilé'], ['parc', 'Parcourue']];
     const outs = [['sans', 'Sans réponse'], ['neg', 'Réponse négative'], ['ref', 'En réflexion'], ['pos', 'Positive / à lire']];
-    // Emails avec maquette -> suivis (depuis le 6 nov.) ou non suivis -> niveau atteint -> réponse.
-    const nt = tr.envoyes_mq || 0, flows = [];
-    if (n - nt > 0) flows.push({ source: 'Envoyés', col_source: 0, cible: 'Non suivis', col_cible: 1, valeur: n - nt });
-    if (nt) flows.push({ source: 'Envoyés', col_source: 0, cible: 'Suivis', col_cible: 1, valeur: nt });
+    // Emails avec maquette -> niveau atteint -> réponse (tous les emails avec maquette de la période).
+    const flows = [];
     levels.forEach(([k, lab]) => {
-      const v = outs.reduce((s2, [o]) => s2 + (tr[`s_${k}_${o}`] || 0), 0);
-      if (v) flows.push({ source: 'Suivis', col_source: 1, cible: lab, col_cible: 2, valeur: v });
-      outs.forEach(([o, olab]) => { const w = tr[`s_${k}_${o}`] || 0; if (w) flows.push({ source: lab, col_source: 2, cible: olab, col_cible: 3, valeur: w }); });
+      const v = outs.reduce((s2, [o]) => s2 + (t[`s_${k}_${o}`] || 0), 0);
+      if (v) flows.push({ source: 'Envoyés', col_source: 0, cible: lab, col_cible: 1, valeur: v });
+      outs.forEach(([o, olab]) => { const w = t[`s_${k}_${o}`] || 0; if (w) flows.push({ source: lab, col_source: 1, cible: olab, col_cible: 2, valeur: w }); });
     });
+    // Taux d'ouverture mesuré sur les prospects déjà relancés au moins une fois.
+    const rel = t.relances_mq || 0, orel = t.ouvertes_rel || 0;
+    $('#mq-rate').replaceChildren();
+    if (rel) {
+      const big = document.createElement('span'); big.className = 'big'; big.textContent = F.pct(orel / rel);
+      const lbl = document.createElement('span'); lbl.className = 'lbl'; lbl.textContent = 'taux d\'ouverture';
+      const sub = document.createElement('span');
+      sub.textContent = `${F.int(orel)} sur ${F.int(rel)} prospects relancés au moins une fois · ${F.int(t.ouvertes || 0)} ouvertes sur ${F.int(n)} emails avec maquette au total`;
+      $('#mq-rate').append(big, lbl, sub);
+    }
     if (!n) line($('#mq-sankey'), 'Aucun email avec maquette sur cette période.', true);
-    else sankey($('#mq-sankey'), flows, ['Emails', 'Suivi', 'Maquette', 'Réponse']);
+    else sankey($('#mq-sankey'), flows, ['Emails', 'Maquette', 'Réponse']);
 
     // Avec ou sans maquette : taux de réponse de chaque groupe, et ce qu'on peut en conclure.
     const cl = t.envoyes_cl || 0;
@@ -488,12 +499,12 @@ const dash = (() => {
       tile('Email classique', c[0], t.reponses_cl || 0, cl, t.positives_cl || 0, t.reflexion_cl || 0));
 
     // Quand ils ouvrent : 1re visite après le 1er email (J0-J3), la relance 1 (J4-J9) ou la relance 2 (J10 et après).
-    const o = tr.ouvertes || 0;
+    const o = t.ouvertes || 0;
     if (!o) line($('#mq-when'), 'Pas encore de visite mesurée sur cette période.', true);
     else barRows($('#mq-when'), [
-      { label: 'après le 1er email', value: tr.ouv_j0 || 0, pct: (tr.ouv_j0 || 0) / o, color: mq },
-      { label: 'après la relance 1', value: tr.ouv_r1 || 0, pct: (tr.ouv_r1 || 0) / o, color: mq },
-      { label: 'après la relance 2', value: tr.ouv_r2 || 0, pct: (tr.ouv_r2 || 0) / o, color: mq },
+      { label: 'après le 1er email', value: t.ouv_j0 || 0, pct: (t.ouv_j0 || 0) / o, color: mq },
+      { label: 'après la relance 1', value: t.ouv_r1 || 0, pct: (t.ouv_r1 || 0) / o, color: mq },
+      { label: 'après la relance 2', value: t.ouv_r2 || 0, pct: (t.ouv_r2 || 0) / o, color: mq },
     ], o);
   }
 
