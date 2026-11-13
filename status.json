@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-13T08:42:19+00:00",
+ "generated_at": "2026-11-13T16:02:07+00:00",
  "jour": "2026-11-13",
  "agents": [
   {
@@ -16,8 +16,8 @@
     "relances": 60,
     "reponses": 1,
     "rebonds": 0,
-    "sites_2_5": 16,
-    "requetes": 181
+    "sites_2_5": 17,
+    "requetes": 200
    },
    "total": {
     "contactes": 498,
@@ -36,7 +36,7 @@
      "libelle": "restos",
      "emails": 13,
      "nouveaux": 9,
-     "sites_2_5": 2,
+     "sites_2_5": 3,
      "contactes": 41
     }
    }
@@ -53,11 +53,11 @@
     "cout_usd": 3.45,
     "envoyees": 14,
     "pretes": 54,
-    "ouvertes": 0
+    "ouvertes": 6
    },
    "total": {
     "maquettes": 262,
-    "ouvertes": 24,
+    "ouvertes": 31,
     "envoyees": 208,
     "cout_usd": 44.04
    }
