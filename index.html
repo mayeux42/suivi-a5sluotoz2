@@ -466,14 +466,15 @@ const dash = (() => {
       if (v) flows.push({ source: 'Envoyés', col_source: 0, cible: lab, col_cible: 1, valeur: v });
       outs.forEach(([o, olab]) => { const w = t[`s_${k}_${o}`] || 0; if (w) flows.push({ source: lab, col_source: 1, cible: olab, col_cible: 2, valeur: w }); });
     });
-    // Taux d'ouverture : emails avec maquette de la période dont la maquette a été ouverte.
-    const ouv = t.ouvertes || 0;
+    // Taux d'ouverture mesuré sur les prospects déjà relancés : ils ont eu le temps d'ouvrir (la plupart ouvrent après
+    // une relance), les tout derniers envoyés feraient baisser le taux à tort.
+    const rel = t.relances_mq || 0, orel = t.ouvertes_rel || 0;
     $('#mq-rate').replaceChildren();
-    if (n) {
-      const big = document.createElement('span'); big.className = 'big'; big.textContent = F.pct(ouv / n);
-      const lbl = document.createElement('span'); lbl.className = 'lbl'; lbl.textContent = 'taux d\'ouverture';
+    if (rel) {
+      const big = document.createElement('span'); big.className = 'big'; big.textContent = F.pct(orel / rel);
+      const lbl = document.createElement('span'); lbl.className = 'lbl'; lbl.textContent = 'ont ouvert leur maquette';
       const sub = document.createElement('span');
-      sub.textContent = `${F.int(ouv)} maquettes ouvertes sur ${F.int(n)} emails avec maquette`;
+      sub.textContent = `${F.int(orel)} sur ${F.int(rel)} prospects déjà relancés au moins une fois. On ne compte qu'eux : ils ont eu le temps d'ouvrir, c'est plus représentatif. Au total, tous envois confondus : ${F.int(t.ouvertes || 0)} sur ${F.int(n)}.`;
       $('#mq-rate').append(big, lbl, sub);
     }
     if (!n) line($('#mq-sankey'), 'Aucun email avec maquette sur cette période.', true);
@@ -494,9 +495,9 @@ const dash = (() => {
       const sp = document.createElement('span'); sp.textContent = `${F.int(a)}/${F.int(b)}`; v.append(bb, sp);
       capEl.append(l1, tr, v);
     });
-    const capNote = document.createElement('div'); capNote.className = 'lab sub'; capNote.style.gridColumn = '1 / -1';
+    const capNote = document.createElement('div'); capNote.className = 'lab sub'; capNote.style.gridColumn = '1 / -1'; capNote.style.whiteSpace = 'normal';
     capNote.textContent = (t.cap_rel || 0)
-      ? 'Prospects avec maquette, relancés au moins une fois : ont ouvert leur maquette (à n\'importe quel email), selon qu\'ils ont reçu la capture ou non. Capture dans les relances depuis le 11 nov.'
+      ? 'Prospects relancés au moins une fois. Capture dans les relances depuis le 11 nov.'
       : 'Pas encore de relance avec capture sur la période (depuis le 11 novembre).';
     capEl.append(capNote);
 
