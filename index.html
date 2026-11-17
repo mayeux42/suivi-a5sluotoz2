@@ -193,7 +193,7 @@ body { font-family: var(--font-anthropic-sans); font-size: 14px; }
       <div><h3 class="mq-h">QUAND ILS OUVRENT · 1re visite de la maquette</h3><div class="funnel" id="mq-when"></div></div>
       <div><h3 class="mq-h">CAPTURE DE LA MAQUETTE · fait-elle ouvrir la maquette ?</h3><div class="funnel" id="mq-cap"></div></div>
     </div>
-    <p class="note">Ouverte : clic sur le lien · A défilé : premier écran dépassé · Parcourue : arrivé aux avis. Taux d'ouverture calculé sur les prospects relancés au moins une fois : les plus récents n'ont pas encore eu le temps d'ouvrir. Visites comptées depuis le 5 nov. au soir.</p>
+    <p class="note">Ouverte : clic sur le lien · A défilé : premier écran dépassé · Parcourue : arrivé aux avis. Visites comptées depuis le 5 nov. au soir.</p>
   </section>
 
   <section class="card" id="projection-card">
@@ -458,7 +458,7 @@ const dash = (() => {
 
     // Sankey : emails envoyés depuis le suivi des visites -> niveau atteint -> réponse.
     const levels = [['non', 'Pas ouverte'], ['ouv', 'Ouverte, quittée vite'], ['def', 'A défilé'], ['parc', 'Parcourue']];
-    const outs = [['sans', 'Sans réponse'], ['neg', 'Réponse négative'], ['int', 'Prix demandé / en réflexion'], ['pos', 'Positive']];
+    const outs = [['sans', 'Sans réponse'], ['neg', 'Réponse négative'], ['int', 'Intéressé'], ['pos', 'Positive']];
     // Emails avec maquette -> niveau atteint -> réponse (tous les emails avec maquette de la période).
     const flows = [];
     levels.forEach(([k, lab]) => {
@@ -466,14 +466,14 @@ const dash = (() => {
       if (v) flows.push({ source: 'Envoyés', col_source: 0, cible: lab, col_cible: 1, valeur: v });
       outs.forEach(([o, olab]) => { const w = t[`s_${k}_${o}`] || 0; if (w) flows.push({ source: lab, col_source: 1, cible: olab, col_cible: 2, valeur: w }); });
     });
-    // Taux d'ouverture mesuré sur les prospects déjà relancés au moins une fois.
-    const rel = t.relances_mq || 0, orel = t.ouvertes_rel || 0;
+    // Taux d'ouverture : emails avec maquette de la période dont la maquette a été ouverte.
+    const ouv = t.ouvertes || 0;
     $('#mq-rate').replaceChildren();
-    if (rel) {
-      const big = document.createElement('span'); big.className = 'big'; big.textContent = F.pct(orel / rel);
+    if (n) {
+      const big = document.createElement('span'); big.className = 'big'; big.textContent = F.pct(ouv / n);
       const lbl = document.createElement('span'); lbl.className = 'lbl'; lbl.textContent = 'taux d\'ouverture';
       const sub = document.createElement('span');
-      sub.textContent = `${F.int(orel)} sur ${F.int(rel)} prospects relancés au moins une fois · ${F.int(t.ouvertes || 0)} ouvertes sur ${F.int(n)} emails avec maquette au total`;
+      sub.textContent = `${F.int(ouv)} maquettes ouvertes sur ${F.int(n)} emails avec maquette`;
       $('#mq-rate').append(big, lbl, sub);
     }
     if (!n) line($('#mq-sankey'), 'Aucun email avec maquette sur cette période.', true);
