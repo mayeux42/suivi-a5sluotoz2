@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-21T23:30:03+00:00",
+ "generated_at": "2026-11-22T16:01:50+00:00",
  "jour": "2026-11-22",
  "agents": [
   {
@@ -16,8 +16,8 @@
     "relances": 0,
     "reponses": 0,
     "rebonds": 0,
-    "sites_2_5": 0,
-    "requetes": 0
+    "sites_2_5": 5,
+    "requetes": 200
    },
    "total": {
     "contactes": 615,
@@ -29,14 +29,14 @@
      "libelle": "plombiers",
      "emails": 0,
      "nouveaux": 0,
-     "sites_2_5": 0,
+     "sites_2_5": 4,
      "contactes": 519
     },
     "restaurant": {
      "libelle": "restos",
      "emails": 0,
      "nouveaux": 0,
-     "sites_2_5": 0,
+     "sites_2_5": 1,
      "contactes": 96
     }
    }
