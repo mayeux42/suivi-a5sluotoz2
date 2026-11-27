@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-27T16:02:29+00:00",
- "jour": "2026-11-27",
+ "generated_at": "2026-11-27T23:18:55+00:00",
+ "jour": "2026-11-28",
  "agents": [
   {
    "id": "prospection",
@@ -11,13 +11,13 @@
    "alertes": [],
    "derniere_activite": "2026-11-27 09:50",
    "aujourdhui": {
-    "emails": 100,
-    "nouveaux": 54,
-    "relances": 46,
-    "reponses": 3,
-    "rebonds": 2,
-    "sites_2_5": 6,
-    "requetes": 200
+    "emails": 0,
+    "nouveaux": 0,
+    "relances": 0,
+    "reponses": 0,
+    "rebonds": 0,
+    "sites_2_5": 0,
+    "requetes": 0
    },
    "total": {
     "contactes": 865,
@@ -27,16 +27,16 @@
    "par_metier": {
     "plombier": {
      "libelle": "plombiers",
-     "emails": 51,
-     "nouveaux": 26,
-     "sites_2_5": 3,
+     "emails": 0,
+     "nouveaux": 0,
+     "sites_2_5": 0,
      "contactes": 641
     },
     "restaurant": {
      "libelle": "restos",
-     "emails": 49,
-     "nouveaux": 28,
-     "sites_2_5": 3,
+     "emails": 0,
+     "nouveaux": 0,
+     "sites_2_5": 0,
      "contactes": 224
     }
    }
@@ -49,11 +49,11 @@
    "etat": "ok",
    "alertes": [],
    "aujourdhui": {
-    "maquettes": 52,
-    "cout_usd": 8.71,
-    "envoyees": 53,
+    "maquettes": 0,
+    "cout_usd": 0.0,
+    "envoyees": 0,
     "pretes": 37,
-    "ouvertes": 6
+    "ouvertes": 0
    },
    "total": {
     "maquettes": 571,
